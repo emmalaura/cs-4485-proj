@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.sentencebuilder.AutoCompleteController"
+      style="-fx-background-color: #D9D9D9;"
+      prefWidth="1280" prefHeight="900">
+
+    <!-- TOP NAV BAR - full width -->
+    <HBox alignment="CENTER_LEFT" spacing="40"
+          style="-fx-background-color: #D9D9D9; -fx-padding: 16 40 16 20;">
+
+        <ImageView fx:id="logoImage" fitWidth="60" fitHeight="60" preserveRatio="true"/>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <HBox spacing="40" alignment="CENTER">
+            <Label text="Home" style="-fx-font-size: 16px; -fx-text-fill: #1a1a1a; -fx-cursor: hand;"
+                   fx:id="navHome" onMouseClicked="#handleHome"/>
+            <Label text="Sentence Gen" style="-fx-font-size: 16px; -fx-text-fill: #1a1a1a; -fx-cursor: hand;"
+                   fx:id="navSentenceGen" onMouseClicked="#handleSentenceGen"/>
+            <Label text="Auto-complete" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1a1a1a;"/>
+            <Label text="Reports" style="-fx-font-size: 16px; -fx-text-fill: #1a1a1a; -fx-cursor: hand;"
+                   fx:id="navReports" onMouseClicked="#handleReports"/>
+            <Label text="Import" style="-fx-font-size: 16px; -fx-text-fill: #1a1a1a; -fx-cursor: hand;"
+                   fx:id="navImport" onMouseClicked="#handleImport"/>
+        </HBox>
+
+    </HBox>
+
+    <!-- SIDEBAR + CONTENT ROW -->
+    <HBox VBox.vgrow="ALWAYS">
+
+        <!-- LEFT SIDEBAR -->
+        <VBox prefWidth="280"
+              style="-fx-background-color: #D9D9D9; -fx-border-color: #bbbbbb; -fx-border-width: 0 1 0 0;">
+
+            <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10 16 10 16;">
+                <Label text="☰" style="-fx-font-size: 16px;"/>
+                <Label text="Chat History" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="⊕" style="-fx-font-size: 16px;"/>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="8"
+                  style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 8 12 8 12;">
+                <HBox.margin>
+                    <Insets left="16" right="16" bottom="8"/>
+                </HBox.margin>
+                <TextField fx:id="searchField" promptText="Search"
+                           style="-fx-background-color: transparent; -fx-border-color: transparent;
+                                  -fx-font-size: 14px;" HBox.hgrow="ALWAYS"/>
+                <Label text="🔍" style="-fx-font-size: 14px;"/>
+            </HBox>
+
+            <Label text="Chats" style="-fx-font-size: 13px; -fx-text-fill: #888888; -fx-padding: 4 0 4 16;"/>
+
+            <VBox spacing="4" style="-fx-padding: 0 8 0 8;">
+                <Label text="Bigram Language Model" maxWidth="Infinity"
+                       style="-fx-background-color: white; -fx-background-radius: 8;
+                              -fx-padding: 10 12 10 12; -fx-font-size: 14px;"/>
+                <Label text="JavaFX" maxWidth="Infinity"
+                       style="-fx-padding: 10 12 10 12; -fx-font-size: 14px;"/>
+            </VBox>
+        </VBox>
+
+        <!-- MAIN CONTENT -->
+        <VBox HBox.hgrow="ALWAYS" style="-fx-background-color: #D9D9D9;">
+
+            <!-- PAGE TITLE -->
+            <Label text="Auto-Complete"
+                   style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #1a1a1a; -fx-padding: 10 0 10 0;"
+                   maxWidth="Infinity" alignment="CENTER"/>
+
+            <!-- WRITING CARD -->
+            <VBox VBox.vgrow="ALWAYS" style="-fx-padding: 0 40 40 40;">
+                <VBox style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 24;"
+                      VBox.vgrow="ALWAYS">
+
+                    <Label text="Writing area"
+                           style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a1a1a;"/>
+                    <Label text="Type freely. Suggestions appear after each space or comma. Click a suggestion to insert it."
+                           wrapText="true"
+                           style="-fx-font-size: 14px; -fx-text-fill: #555555; -fx-padding: 4 0 16 0;"/>
+
+                    <HBox fx:id="suggestionsBar" spacing="8" style="-fx-padding: 0 0 10 0;"/>
+
+                    <TextArea fx:id="writingArea"
+                              promptText="Start Typing...Try words like Bigram Language Model to trigger response"
+                              wrapText="true"
+                              VBox.vgrow="ALWAYS"
+                              style="-fx-background-color: #c8c8c8;
+                                     -fx-background-radius: 12;
+                                     -fx-font-size: 14px;
+                                     -fx-padding: 16;
+                                     -fx-border-color: transparent;"/>
+                </VBox>
+            </VBox>
+
+        </VBox>
+    </HBox>
+
+</VBox>
