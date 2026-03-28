@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.sentencebuilder.ImportController"
+      style="-fx-background-color: #D9D9D9;"
+      prefWidth="1280" prefHeight="900">
+
+    <!-- TOP NAV BAR -->
+    <HBox alignment="CENTER" spacing="40"
+          style="-fx-background-color: #D9D9D9; -fx-padding: 16 40 16 40;">
+
+        <ImageView fx:id="logoImage" fitWidth="60" fitHeight="60" preserveRatio="true"/>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <HBox spacing="40" alignment="CENTER">
+            <Label text="Home" style="-fx-font-size: 16px; -fx-text-fill: #1a1a1a; -fx-cursor: hand;"
+                   fx:id="navHome" onMouseClicked="#handleHome"/>
+            <Label text="Sentence Gen" style="-fx-font-size: 16px; -fx-text-fill: #1a1a1a; -fx-cursor: hand;"
+                   fx:id="navSentenceGen" onMouseClicked="#handleSentenceGen"/>
+            <Label text="Auto-complete" style="-fx-font-size: 16px; -fx-text-fill: #1a1a1a; -fx-cursor: hand;"
+                   fx:id="navAutoComplete" onMouseClicked="#handleAutoComplete"/>
+            <Label text="Reports" style="-fx-font-size: 16px; -fx-text-fill: #1a1a1a; -fx-cursor: hand;"
+                   fx:id="navReports" onMouseClicked="#handleReports"/>
+            <Label text="Import" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1a1a1a;"/>
+        </HBox>
+
+    </HBox>
+
+    <!-- MAIN CONTENT -->
+    <VBox VBox.vgrow="ALWAYS" style="-fx-padding: 20 120 20 120;" spacing="24">
+
+        <!-- IMPORT CARD -->
+        <VBox style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 32;"
+              alignment="CENTER" spacing="12">
+
+            <!-- Title -->
+            <Label text="Import a Text File"
+                   style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #1a1a1a;"/>
+
+            <!-- Subtitle -->
+            <Label text="Accepted format: plain text (.txt). Large files may take a moment."
+                   wrapText="true" maxWidth="500"
+                   style="-fx-font-size: 18px; -fx-text-fill: #888888; -fx-text-alignment: center;"
+                   alignment="CENTER"/>
+
+            <!-- Drop Zone -->
+            <VBox alignment="CENTER" spacing="10"
+                  style="-fx-background-color: #D9D9D9; -fx-background-radius: 12;
+                         -fx-padding: 40; -fx-min-width: 400;">
+
+                <!-- Upload Icon -->
+                <Label text="⬆" style="-fx-font-size: 36px; -fx-text-fill: #1a1a1a;"/>
+
+                <!-- Drop Text -->
+                <Label fx:id="dropLabel" text="Drop a .txt file here"
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1a1a1a;"/>
+
+                <Label text="or click to browse your computer"
+                       style="-fx-font-size: 13px; -fx-text-fill: #888888;"/>
+
+                <!-- Choose File Button -->
+                <Button text="Choose File" onAction="#handleChooseFile"
+                        style="-fx-background-color: #2b2b2b;
+                               -fx-text-fill: white;
+                               -fx-font-size: 14px;
+                               -fx-padding: 10 24 10 24;
+                               -fx-background-radius: 20;
+                               -fx-cursor: hand;"/>
+            </VBox>
+        </VBox>
+
+        <!-- IMPORT HISTORY CARD -->
+        <VBox style="-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 32;"
+              VBox.vgrow="ALWAYS" spacing="12">
+
+            <!-- Title -->
+            <Label text="Import History"
+                   style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #1a1a1a;"
+                   maxWidth="Infinity" alignment="CENTER"/>
+
+            <!-- Table Header -->
+            <HBox style="-fx-border-color: #1a1a1a; -fx-border-width: 0 0 1 0; -fx-padding: 0 0 8 0;">
+                <Label text="File Name" prefWidth="300"
+                       style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1a1a1a;"/>
+                <Label text="Words" prefWidth="150"
+                       style="-fx-font-size: 14px; -fx-text-fill: #1a1a1a;"/>
+                <Label text="Imported On" prefWidth="150"
+                       style="-fx-font-size: 14px; -fx-text-fill: #1a1a1a;"/>
+                <Label text="Status"
+                       style="-fx-font-size: 14px; -fx-text-fill: #1a1a1a;"/>
+            </HBox>
+
+            <!-- History Rows -->
+            <VBox fx:id="importHistoryList" spacing="4">
+                <Label text="No files imported yet. Import your first file above."
+                       style="-fx-font-size: 14px; -fx-text-fill: #888888; -fx-padding: 16 0 0 0;"
+                       maxWidth="Infinity" alignment="CENTER"/>
+            </VBox>
+
+        </VBox>
+
+    </VBox>
+
+</VBox>
