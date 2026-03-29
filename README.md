@@ -59,4 +59,5 @@ there should be our tables in there.
      mysql -u javauser -p CS4485DB
      SHOW TABLES;
 
+#After compeleting those steps, go to dbConnection.java and run it. It should say DB CONNECTED!
 
