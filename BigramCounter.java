@@ -43,7 +43,7 @@ public class BigramCounter {
     private final List<FileRecord>                 files         = new ArrayList<>();
     private final Set<String>                      seenChecksums = new HashSet<>();
     //For doing occurences by file
-    private final Map<Integer, Map<Integer, Long>> fileWordOcc   = new LinkedHashMap<>();
+    //private final Map<Integer, Map<Integer, Long>> fileWordOcc   = new LinkedHashMap<>();
 
     //File data record to make file handling and duplicate checking more convenient
     private static class FileRecord {
@@ -75,7 +75,7 @@ public class BigramCounter {
         loadWordsCSV(dir.resolve("words.csv"));
         loadTransitionsCSV(dir.resolve("word_transitions.csv"));
         loadImportedFilesCSV(dir.resolve("imported_files.csv"));
-        loadWordFileOccurrencesCSV(dir.resolve("word_file_occurrences.csv"));
+        //loadWordFileOccurrencesCSV(dir.resolve("word_file_occurrences.csv"));
     }
 
     private void loadWordsCSV(Path path) throws IOException {
@@ -142,12 +142,13 @@ public class BigramCounter {
                 fr.checksum      = c[7].trim();
                 files.add(fr); //Add to file record list
                 seenChecksums.add(fr.checksum); //Also add the checksum so no repeat processes
-                fileWordOcc.putIfAbsent(fr.fileId, new LinkedHashMap<>()); //Add a new map for the file for filewordoccurances
+                //fileWordOcc.putIfAbsent(fr.fileId, new LinkedHashMap<>()); //Add a new map for the file for filewordoccurances
             }
         }
         System.out.printf("  Loaded %,d file records%n", files.size());
     }
 
+    /*
     private void loadWordFileOccurrencesCSV(Path path) throws IOException {
         if (!Files.exists(path)) return;
         System.out.println("Loading existing: " + path.getFileName());
@@ -169,7 +170,7 @@ public class BigramCounter {
         }
         System.out.printf("  Loaded %,d word-file occurrence rows%n", rows);
     }
-
+    */
     //Actual method for Processing each file
 
     public void processFile(Path file) throws IOException, NoSuchAlgorithmException {
@@ -193,7 +194,7 @@ public class BigramCounter {
         files.add(fr); //Add to list of files
 
         Map<Integer, Long> perFileWords = new LinkedHashMap<>(); //Create the per file occurances map
-        fileWordOcc.put(fr.fileId, perFileWords); //Ad to overall map
+        //fileWordOcc.put(fr.fileId, perFileWords); //Ad to overall map
 
         String[] sentenceChunks = SENTENCE_SPLIT.split(text); //Use sentence pattern to split by punctuation
         long sentenceCount = 0; //initialize counts for sentences and words
@@ -243,15 +244,15 @@ public class BigramCounter {
         writeWordsCSV(dir.resolve("words.csv"));
         writeTransitionsCSV(dir.resolve("word_transitions.csv"));
         writeImportedFilesCSV(dir.resolve("imported_files.csv"));
-        writeWordFileOccurrencesCSV(dir.resolve("word_file_occurrences.csv"));
+        //writeWordFileOccurrencesCSV(dir.resolve("word_file_occurrences.csv"));
         //At this point, final writes for overall counts done
         //Output to console overall row counts for debugging purposes
         System.out.println("\nCSVs updated in: " + dir.toAbsolutePath());
         System.out.printf("  words                  : %,d rows%n", wordIds.size());
         System.out.printf("  word_transitions       : %,d rows%n", transitionCounts.size());
         System.out.printf("  imported_files         : %,d rows%n", files.size());
-        long occRows = fileWordOcc.values().stream().mapToLong(Map::size).sum();
-        System.out.printf("  word_file_occurrences  : %,d rows%n", occRows);
+        //long occRows = fileWordOcc.values().stream().mapToLong(Map::size).sum();
+        //System.out.printf("  word_file_occurrences  : %,d rows%n", occRows);
     }
 
     //Below are the helper methods used above to write to each individual output csv file
@@ -303,6 +304,7 @@ public class BigramCounter {
         }
     }
 
+    /* 
     private void writeWordFileOccurrencesCSV(Path path) throws IOException {
         try (PrintWriter pw = openWriter(path)) {
             pw.println("wordId,fileId,count");//header
@@ -314,7 +316,7 @@ public class BigramCounter {
             }
         }
     }
-
+    */
     //Other helper methods used during processing
 
     public static List<String> tokenize(String text) {
