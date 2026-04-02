@@ -1,0 +1,20 @@
+# Maven compiled output
+target/
+dependency-reduced-pom.xml
+
+# IntelliJ IDEA project files
+.idea/
+*.iml
+*.iws
+out/
+
+# VS Code project files
+.vscode/
+
+# macOS metadata
+.DS_Store
+
+# Environment variables / credentials (never commit these)
+.env
+*.env
+
