@@ -34,3 +34,13 @@ CREATE TABLE imported_files (
     importedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uqChecksum (checksum)
 );
+
+CREATE TABLE generated_sentences (
+    sentenceId INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    sentenceText TEXT NOT NULL,
+    startingWordId INT UNSIGNED NULL,
+    generationMethod VARCHAR(50) NOT NULL,
+    sentenceLength INT UNSIGNED NOT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (startingWordId) REFERENCES words(wordId)
+);
