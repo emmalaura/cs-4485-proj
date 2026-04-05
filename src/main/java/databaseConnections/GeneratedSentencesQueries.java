@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GeneratedSentencesQueries {
 
@@ -48,5 +50,55 @@ public class GeneratedSentencesQueries {
         }
         
         return -1;
+    }
+
+    /**
+     * Retrieves all generated sentences from the database.
+     *
+     * @return A list of all sentence texts.
+     */
+    public static List<String> getAllGeneratedSentences() {
+        List<String> sentences = new ArrayList<>();
+        String sql = "SELECT sentenceText FROM generated_sentences";
+        
+        try (Connection conn = dbConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                sentences.add(rs.getString("sentenceText"));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error retrieving generated sentences: " + e.getMessage());
+        }
+        
+        return sentences;
+    }
+
+    /**
+     * Checks whether a given sentence already exists in the database.
+     * Useful for checking for duplicates before saving.
+     *
+     * @param sentenceText The text of the sentence to check.
+     * @return true if the sentence exists, false otherwise.
+     */
+    public static boolean checkIfSentenceExists(String sentenceText) {
+        String sql = "SELECT COUNT(*) FROM generated_sentences WHERE sentenceText = ?";
+        
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, sentenceText);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error checking if sentence exists: " + e.getMessage());
+        }
+        
+        return false;
     }
 }
