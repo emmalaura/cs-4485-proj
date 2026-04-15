@@ -6,6 +6,12 @@ import javafx.scene.layout.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.geometry.Pos;
+import com.cs4485.model.BigramModel;
+import com.cs4485.model.DBInterface;
+import com.cs4485.model.GenerationStrategy;
+import com.cs4485.model.ModelPredictor;
+import com.cs4485.model.SmoothingMethod;
+import java.util.List;
 
 public class SentenceGenController extends BaseController {
 
@@ -21,6 +27,9 @@ public class SentenceGenController extends BaseController {
     @FXML private VBox messageArea;
     @FXML private TextField inputField;
     @FXML private TextField searchField;
+    private DBInterface db;
+    private BigramModel model;
+    private boolean modelReady = false;
 
     @FXML
     public void initialize() {
@@ -42,6 +51,20 @@ public class SentenceGenController extends BaseController {
                 refreshTheme();
             });
         }
+        // Connect to DB and load model in background thread so UI doesn't freeze
+        new Thread(() -> {
+            try {
+                db = new DBInterface("localhost", "CS4485DB", "javauser", "cs4485");
+                model = new BigramModel(SmoothingMethod.KNESER_NEY);
+                model.train(db.loadWords(), db.loadTransitions());
+                modelReady = true;
+                javafx.application.Platform.runLater(() ->
+                        addResponseBubble("Model ready! Type a word to generate a sentence."));
+            } catch (Exception e) {
+                javafx.application.Platform.runLater(() ->
+                        addResponseBubble("Could not connect to database: " + e.getMessage()));
+            }
+        }).start();
     }
 
     private void refreshTheme() {
@@ -89,12 +112,27 @@ public class SentenceGenController extends BaseController {
 
     @FXML
     private void handleSend() {
-        String word = inputField.getText().trim();
-        if (!word.isEmpty()) {
-            addUserBubble(word);
-            inputField.clear();
-            addResponseBubble("...");
+        String input = inputField.getText().trim();
+        if (input.isEmpty()) return;
+
+        addUserBubble(input);
+        inputField.clear();
+
+        if (!modelReady) {
+            addResponseBubble("Model is still loading, please wait...");
+            return;
         }
+
+        new Thread(() -> {
+            try {
+                List<String> words = ModelPredictor.completeSentence(model, input, 10, GenerationStrategy.BEAM);
+                String sentence = String.join(" ", words);
+                javafx.application.Platform.runLater(() -> addResponseBubble(sentence));
+            } catch (Exception e) {
+                javafx.application.Platform.runLater(() ->
+                        addResponseBubble("Error generating sentence: " + e.getMessage()));
+            }
+        }).start();
     }
 
     private void addUserBubble(String text) {
