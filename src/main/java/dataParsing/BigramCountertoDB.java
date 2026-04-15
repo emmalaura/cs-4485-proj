@@ -13,7 +13,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -41,7 +40,7 @@ import databaseConnections.dbConnection;
  *   
  */
 public class BigramCountertoDB {
-
+    private int nextWordId = 1;
     // Patterns For Words and sentances
     private static final Pattern WORD_PATTERN   = Pattern.compile("\\b[a-zA-Z]+(?:'[a-zA-Z]+)*\\b");
     private static final Pattern SENTENCE_SPLIT = Pattern.compile("(?<=[.!?])\\s+");
@@ -55,7 +54,7 @@ public class BigramCountertoDB {
     private final Map<Integer, Long>   startCount = new HashMap<>();
     private final Map<Integer, Long>   endCount   = new HashMap<>();
 
-    private final Map<String, Long> transitionCounts = new LinkedHashMap<>();
+    private final Map<Long, Long> transitionCounts = new HashMap<>(200000);
 
     private final Set<String> seenChecksums = new HashSet<>();
 
@@ -87,20 +86,33 @@ public class BigramCountertoDB {
     }
 
     private void loadWordIdsFromDB(Connection conn) {
-        String sql = "SELECT wordId, word FROM words";
-        try (Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)) {
+    String sql = "SELECT wordId, word FROM words";
 
-            while (rs.next()) {
-                wordIds.put(rs.getString("word"), rs.getInt("wordId"));
+    try (Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery(sql)) {
+
+        int maxId = 0; // track highest ID
+
+        while (rs.next()) {
+            int id = rs.getInt("wordId");
+            String word = rs.getString("word");
+
+            wordIds.put(word, id);
+
+            if (id > maxId) {
+                maxId = id;
             }
-
-            System.out.printf("Loaded %,d existing words from DB%n", wordIds.size());
-
-        } catch (SQLException e) {
-            System.err.println("Warning: could not load words from DB — " + e.getMessage());
         }
+
+        // 🔥 critical for fast wordId()
+        nextWordId = maxId + 1;
+
+        System.out.printf("Loaded %,d existing words from DB%n", wordIds.size());
+
+    } catch (SQLException e) {
+        System.err.println("Warning: could not load words from DB — " + e.getMessage());
     }
+}
 
     private void loadChecksumsFromDB(Connection conn) {
         String sql = "SELECT checksum FROM imported_files WHERE checksum IS NOT NULL";
@@ -164,7 +176,8 @@ public class BigramCountertoDB {
             for (int i = 0; i < words.size() - 1; i++) {
                 int w1 = wordId(words.get(i));
                 int w2 = wordId(words.get(i + 1));
-                transitionCounts.merge(w1 + ":" + w2, 1L, Long::sum);
+                long key = ((long) w1 << 32) | (w2 & 0xffffffffL);
+                transitionCounts.merge(key, 1L, Long::sum);
             }
         }
 
@@ -219,7 +232,6 @@ public class BigramCountertoDB {
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            conn.setAutoCommit(false);
 
             for (Map.Entry<String, Integer> entry : wordIds.entrySet()) {
                 String word = entry.getKey();
@@ -242,13 +254,10 @@ public class BigramCountertoDB {
 
                 if (count % batchSize == 0) {
                     pstmt.executeBatch();
-                    conn.commit();
                 }
             }
 
             pstmt.executeBatch();
-            conn.commit();
-            conn.setAutoCommit(true);
             System.out.printf("  Words upserted     : %,d rows%n", count);
 
         } catch (SQLException e) {
@@ -264,17 +273,16 @@ public class BigramCountertoDB {
             "VALUES (?, ?, ?, 0.0) " +
             "ON DUPLICATE KEY UPDATE count = count + VALUES(count)";
 
-        int batchSize = 500;
+        int batchSize = 2000;
         int count     = 0;
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            conn.setAutoCommit(false);
 
-            for (Map.Entry<String, Long> entry : transitionCounts.entrySet()) {
-                String[] parts = entry.getKey().split(":");
-                int      w1    = Integer.parseInt(parts[0]);
-                int      w2    = Integer.parseInt(parts[1]);
+            for (Map.Entry<Long, Long> entry : transitionCounts.entrySet()) {
+                long key = entry.getKey();
+                int w1 = (int) (key >> 32);
+                int w2 = (int) key;
                 long     c     = entry.getValue();
 
                 pstmt.setInt(1, w1);
@@ -285,13 +293,10 @@ public class BigramCountertoDB {
 
                 if (count % batchSize == 0) {
                     pstmt.executeBatch();
-                    conn.commit();
                 }
             }
 
             pstmt.executeBatch();
-            conn.commit();
-            conn.setAutoCommit(true);
             System.out.printf("  Transitions upserted: %,d rows%n", count);
 
         } catch (SQLException e) {
@@ -334,51 +339,39 @@ public class BigramCountertoDB {
     // ---- 3d. Imported files --------------------------------------------------
 
     private void flushImportedFiles(Connection conn) {
-    String sql =
-        "INSERT INTO imported_files " +
-        "  (fileName, filePath, fileSizeBytes, wordCount, sentenceCount, uniqueWords, checksum) " +
-        "VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql =
+            "INSERT INTO imported_files " +
+            "  (fileName, filePath, fileSizeBytes, wordCount, sentenceCount, uniqueWords, checksum) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-    int count = 0;
+        int count = 0;
 
-    try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        conn.setAutoCommit(false);
 
-        for (FileRecord fr : pendingFiles) {
-            pstmt.setString(1, fr.fileName);
-            pstmt.setString(2, fr.filePath);
-            pstmt.setLong(3, fr.fileSizeBytes);
-            pstmt.setLong(4, fr.wordCount);
-            pstmt.setLong(5, fr.sentenceCount);
-            pstmt.setLong(6, fr.uniqueWords);
-            pstmt.setString(7, fr.checksum);
-            pstmt.addBatch();
-            count++;
-        }
+            for (FileRecord fr : pendingFiles) {
+                pstmt.setString(1, fr.fileName);
+                pstmt.setString(2, fr.filePath);
+                pstmt.setLong(3, fr.fileSizeBytes);
+                pstmt.setLong(4, fr.wordCount);
+                pstmt.setLong(5, fr.sentenceCount);
+                pstmt.setLong(6, fr.uniqueWords);
+                pstmt.setString(7, fr.checksum);
+                pstmt.addBatch();
+                count++;
+            }
 
-        pstmt.executeBatch();
-        conn.commit();
+            pstmt.executeBatch();
 
-        System.out.printf("  Imported files inserted: %,d rows%n", count);
+            System.out.printf("  Imported files inserted: %,d rows%n", count);
 
-    } catch (SQLException e) {
-        try {
-            conn.rollback(); // IMPORTANT for transactions
-        } catch (SQLException rollbackEx) {
-            System.err.println("Rollback failed: " + rollbackEx.getMessage());
-        }
-
-        System.err.println("Error inserting imported file record: " + e.getMessage());
-
-    } finally {
-        try {
-            conn.setAutoCommit(true); // restore default state
         } catch (SQLException e) {
-            System.err.println("Failed to reset autoCommit: " + e.getMessage());
+            System.err.println("Error inserting imported file record: " + e.getMessage());
+            throw new RuntimeException(e);
         }
+
     }
-}
+
 
     // Here provide summary of processed files
 
@@ -407,13 +400,8 @@ public class BigramCountertoDB {
      * highest existing DB id so there are no collisions.
      */
     private int wordId(String word) {
-        return wordIds.computeIfAbsent(word, w -> {
-            // nextId = current max + 1  (works whether the map is empty or not)
-            int nextId = wordIds.isEmpty() ? 1
-                    : Collections.max(wordIds.values()) + 1;
-            return nextId;
-        });
-    }
+        return wordIds.computeIfAbsent(word, w -> nextWordId++);
+    }   
 
     /** SHA-256 hex digest — credit: https://www.baeldung.com/sha-256-hashing-java */
     private static String sha256Hex(byte[] data) throws NoSuchAlgorithmException {
@@ -425,22 +413,60 @@ public class BigramCountertoDB {
 
 
     public static void main(String[] args) {
+        if (args.length < 1) {
+            System.err.println("Usage: java BigramCounter <file1.txt> [file2.txt ...]");
+            System.exit(1);
+        }
 
-        try (Connection conn = dbConnection.getConnection()) {
+        Connection conn = null;
+
+        try {
+            conn = dbConnection.getConnection();
+
+            // 🔥 ONE transaction for entire run
+            conn.setAutoCommit(false);
 
             BigramCountertoDB counter = new BigramCountertoDB();
 
+            // Load DB state
             counter.loadExistingFromDB(conn);
 
+            // Process input files
             for (String arg : args) {
                 Path file = Paths.get(arg);
+                System.out.println("Processing: " + file);
                 counter.processFile(file);
             }
 
             counter.flushToDB(conn);
 
+
+            conn.commit();
+
+            System.out.println("\nAll data committed successfully.");
+
         } catch (Exception e) {
+            System.err.println("Error occurred, rolling back...");
             e.printStackTrace();
-        } 
+
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                    System.err.println("Rollback successful.");
+                } catch (SQLException ex) {
+                    System.err.println("Rollback failed: " + ex.getMessage());
+                }
+            }
+
+        } finally {
+            // Close connection manually
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    System.err.println("Failed to close connection: " + e.getMessage());
+                }
+            }
+        }
     }
 }
