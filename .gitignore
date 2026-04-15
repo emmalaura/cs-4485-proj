@@ -44,3 +44,5 @@ build/
 # Environment variables / credentials (never commit these)
 .env
 *.envout/
+out/
+**/target/
