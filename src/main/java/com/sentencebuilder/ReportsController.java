@@ -1,21 +1,18 @@
 package com.sentencebuilder;
 
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.stage.Stage;
+import javafx.collections.FXCollections;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-public class ReportsController {
+public class ReportsController extends BaseController {
 
+    @FXML private VBox rootNode;
+    @FXML private HBox navBar;
+    @FXML private Button themeBtn;
     @FXML private ImageView logoImage;
     @FXML private Label navHome;
     @FXML private Label navSentenceGen;
@@ -25,8 +22,12 @@ public class ReportsController {
     @FXML private VBox wordListContainer;
     @FXML private VBox sentenceListContainer;
     @FXML private ComboBox<String> sortSelector;
+    @FXML private VBox wordListCard;
+    @FXML private VBox sentenceCard;
+    @FXML private Label reportsTitle;
+    @FXML private Label wordListTitle;
+    @FXML private Label sentenceTitle;
 
-    // Sample data — will be replaced by backend data later
     private final List<WordEntry> wordEntries = new ArrayList<>(Arrays.asList(
             new WordEntry("bigram", 12, "2026-03-01", "textbook.txt"),
             new WordEntry("algorithm", 9, "2026-03-02", "manual.txt"),
@@ -48,7 +49,6 @@ public class ReportsController {
 
     @FXML
     public void initialize() {
-        // Load logo
         try {
             Image logo = new Image(getClass().getResourceAsStream("autoglossarylogo.png"));
             logoImage.setImage(logo);
@@ -56,7 +56,10 @@ public class ReportsController {
             System.out.println("Logo not found, skipping.");
         }
 
-        // Set up sort options
+        UIUtils.applyCardShadow(wordListCard);
+        UIUtils.applyCardShadow(sentenceCard);
+        UIUtils.updateLogo(logoImage);
+
         sortSelector.setItems(FXCollections.observableArrayList(
                 "Alphabetical (A-Z)", "Frequency (Most Used)", "Date Added"
         ));
@@ -65,38 +68,97 @@ public class ReportsController {
 
         renderWordList("Alphabetical (A-Z)");
         renderSentenceList();
+
+        initBase();
+        refreshTheme();
+
+        if (themeBtn != null) {
+            themeBtn.setOnAction(e -> {
+                ThemeManager.toggleTheme();
+                UIUtils.updateLogo(logoImage);
+                refreshTheme();
+                renderWordList(sortSelector.getValue());
+                renderSentenceList();
+            });
+        }
     }
+
+    private void refreshTheme() {
+        getRootNode().setStyle("-fx-background-color: " + ThemeManager.getBackground() + ";");
+
+        navBar.setStyle("-fx-background-color: " + ThemeManager.getNavColor() +
+                "; -fx-padding: 16 40 16 20;");
+
+        javafx.application.Platform.runLater(() -> {
+            UIUtils.applyNavStyle(navHome, false);
+            UIUtils.applyNavStyle(navSentenceGen, false);
+            UIUtils.applyNavStyle(navAutoComplete, false);
+            UIUtils.applyNavStyle(navReports, true);
+            UIUtils.applyNavStyle(navImport, false);
+        });
+
+        if (themeBtn != null) {
+            themeBtn.setText(ThemeManager.isDark() ? "☀ Light" : "🌙 Dark");
+            themeBtn.setStyle("-fx-background-color: transparent; " +
+                    "-fx-text-fill: " + ThemeManager.getTextColor() + "; " +
+                    "-fx-font-size: 13px; -fx-cursor: hand; " +
+                    "-fx-border-color: " + ThemeManager.getTextColor() + "; " +
+                    "-fx-border-radius: 20; -fx-background-radius: 20; " +
+                    "-fx-padding: 4 12 4 12;");
+        }
+
+        sortSelector.setStyle("-fx-background-color: " + ThemeManager.getInputColor() + ";" +
+                "-fx-text-fill: " + ThemeManager.getTextColor() + ";" +
+                "-fx-border-color: " + ThemeManager.getBorderColor() + ";" +
+                "-fx-background-radius: 8;");
+
+        String textColor = ThemeManager.getTextColor();
+
+        if (reportsTitle != null) {
+            reportsTitle.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: " + textColor + ";");
+        }
+
+        if (wordListTitle != null) {
+            wordListTitle.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: " + textColor + ";");
+        }
+
+        if (sentenceTitle != null) {
+            sentenceTitle.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: " + textColor + ";");
+        }
+    }
+
+    @Override
+    protected Region getRootNode() { return rootNode; }
+
+    @Override
+    protected String getCurrentPage() { return "Reports"; }
 
     private void renderWordList(String sortBy) {
         wordListContainer.getChildren().clear();
-
         List<WordEntry> sorted = new ArrayList<>(wordEntries);
         switch (sortBy) {
             case "Frequency (Most Used)" -> sorted.sort((a, b) -> b.frequency - a.frequency);
             case "Date Added" -> sorted.sort(Comparator.comparing(a -> a.dateAdded));
             default -> sorted.sort(Comparator.comparing(a -> a.word));
         }
-
         for (WordEntry entry : sorted) {
             HBox row = new HBox();
-            row.setStyle("-fx-padding: 10 0 10 0; " +
-                    "-fx-border-color: #eeeeee; " +
-                    "-fx-border-width: 0 0 1 0;");
+            row.setStyle("-fx-padding: 10 0 10 0; -fx-border-color: " + ThemeManager.getBorderColor() + "; -fx-border-width: 0 0 1 0;");
 
             Label wordLabel = new Label(entry.word);
             wordLabel.setPrefWidth(250);
-            wordLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+            wordLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + ThemeManager.getTextColor() + ";");
 
             Label freqLabel = new Label(entry.frequency + "x");
             freqLabel.setPrefWidth(150);
-            freqLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #555555;");
+            freqLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + ThemeManager.getSubText() + ";");
 
             Label dateLabel = new Label(entry.dateAdded);
             dateLabel.setPrefWidth(180);
-            dateLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #555555;");
+            dateLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + ThemeManager.getSubText() + ";");
 
             Label sourceLabel = new Label(entry.sourceFile);
-            sourceLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #555555;");
+            sourceLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + ThemeManager.getSubText() + ";");
 
             row.getChildren().addAll(wordLabel, freqLabel, dateLabel, sourceLabel);
             wordListContainer.getChildren().add(row);
@@ -105,96 +167,60 @@ public class ReportsController {
 
     private void renderSentenceList() {
         sentenceListContainer.getChildren().clear();
-
-        // Count duplicates
         Map<String, Integer> countMap = new LinkedHashMap<>();
         Map<String, String> dateMap = new LinkedHashMap<>();
         for (SentenceEntry entry : sentenceEntries) {
             countMap.put(entry.sentence, countMap.getOrDefault(entry.sentence, 0) + 1);
             dateMap.put(entry.sentence, entry.date);
         }
-
         for (Map.Entry<String, Integer> entry : countMap.entrySet()) {
             String sentence = entry.getKey();
             int count = entry.getValue();
 
             HBox row = new HBox(12);
-            row.setStyle("-fx-padding: 10 0 10 0; " +
-                    "-fx-border-color: #eeeeee; " +
-                    "-fx-border-width: 0 0 1 0;");
+            row.setStyle("-fx-padding: 10 0 10 0; -fx-border-color: " + ThemeManager.getBorderColor() + "; -fx-border-width: 0 0 1 0;");
             row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
             Label sentenceLabel = new Label(sentence);
             sentenceLabel.setWrapText(true);
             sentenceLabel.setMaxWidth(700);
-            sentenceLabel.setStyle("-fx-font-size: 14px;");
+            sentenceLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + ThemeManager.getTextColor() + ";");
             HBox.setHgrow(sentenceLabel, Priority.ALWAYS);
 
             Label dateLabel = new Label(dateMap.get(sentence));
             dateLabel.setPrefWidth(120);
-            dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #888888;");
+            dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + ThemeManager.getSubText() + ";");
 
-            // Duplicate badge
             if (count > 1) {
                 Label badge = new Label(count + " duplicates");
-                badge.setStyle("-fx-background-color: #e53935; " +
-                        "-fx-text-fill: white; " +
-                        "-fx-background-radius: 20; " +
-                        "-fx-padding: 4 10 4 10; " +
-                        "-fx-font-size: 12px;");
+                badge.setStyle("-fx-background-color: #e53935; -fx-text-fill: white; " +
+                        "-fx-background-radius: 20; -fx-padding: 4 10 4 10; -fx-font-size: 12px;");
                 row.getChildren().addAll(sentenceLabel, dateLabel, badge);
             } else {
                 row.getChildren().addAll(sentenceLabel, dateLabel);
             }
-
             sentenceListContainer.getChildren().add(row);
         }
     }
 
-    // --- Data classes ---
     static class WordEntry {
         String word, dateAdded, sourceFile;
         int frequency;
         WordEntry(String word, int frequency, String dateAdded, String sourceFile) {
-            this.word = word;
-            this.frequency = frequency;
-            this.dateAdded = dateAdded;
-            this.sourceFile = sourceFile;
+            this.word = word; this.frequency = frequency;
+            this.dateAdded = dateAdded; this.sourceFile = sourceFile;
         }
     }
 
     static class SentenceEntry {
         String sentence, date;
         SentenceEntry(String sentence, String date) {
-            this.sentence = sentence;
-            this.date = date;
+            this.sentence = sentence; this.date = date;
         }
     }
 
-    private void navigateTo(String fxmlPath, javafx.scene.Node source) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-        Stage stage = (Stage) source.getScene().getWindow();
-        stage.setScene(new Scene(loader.load()));
-    }
-
-    @FXML private void handleHome() throws Exception {
-        navigateTo("/com/sentencebuilder/Home.fxml", navHome);
-    }
-
-    @FXML private void handleSentenceGen() throws Exception {
-        navigateTo("/com/sentencebuilder/SentenceGen.fxml", navSentenceGen);
-    }
-
-    @FXML private void handleAutoComplete() throws Exception {
-        navigateTo("/com/sentencebuilder/AutoComplete.fxml", navAutoComplete);
-    }
-
-    @FXML private void handleImport() throws Exception {
-        navigateTo("/com/sentencebuilder/Import.fxml", navImport);
-    }
-
-    @FXML
-    private void handleReports() throws Exception{
-        navigateTo("/com/sentencebuilder/Reports.fxml", navReports);
-    }
+    @FXML private void handleHome() { navigateTo("/com/sentencebuilder/Home.fxml", navHome); }
+    @FXML private void handleSentenceGen() { navigateTo("/com/sentencebuilder/SentenceGen.fxml", navSentenceGen); }
+    @FXML private void handleAutoComplete() { navigateTo("/com/sentencebuilder/AutoComplete.fxml", navAutoComplete); }
+    @FXML private void handleImport() { navigateTo("/com/sentencebuilder/Import.fxml", navImport); }
 }

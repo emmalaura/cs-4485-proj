@@ -8,22 +8,23 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.geometry.Pos;
 
-public class AutoCompleteController {
+public class AutoCompleteController extends BaseController {
 
+    @FXML private VBox rootNode;
+    @FXML private HBox navBar;
+    @FXML private Button themeBtn;
     @FXML private ImageView logoImage;
     @FXML private Label navHome;
     @FXML private Label navSentenceGen;
+    @FXML private Label navAutoComplete;
     @FXML private Label navReports;
     @FXML private Label navImport;
-    @FXML private TextField searchField;
     @FXML private TextArea writingArea;
     @FXML private HBox suggestionsBar;
 
     @FXML
     public void initialize() {
-        // Load logo
         try {
             Image logo = new Image(getClass().getResourceAsStream("autoglossarylogo.png"));
             logoImage.setImage(logo);
@@ -31,23 +32,76 @@ public class AutoCompleteController {
             System.out.println("Logo not found, skipping.");
         }
 
-        // Listen for typing and trigger suggestions after space or comma
         writingArea.textProperty().addListener((obs, oldText, newText) -> {
             if (newText.endsWith(" ") || newText.endsWith(",")) {
                 showSuggestions(newText);
             }
         });
+
+        UIUtils.updateLogo(logoImage);
+
+        initBase();
+        refreshTheme();
+
+        if (themeBtn != null) {
+            themeBtn.setOnAction(e -> {
+                ThemeManager.toggleTheme();
+                UIUtils.updateLogo(logoImage);
+                refreshTheme();
+            });
+        }
     }
+
+    private void refreshTheme() {
+        getRootNode().setStyle("-fx-background-color: " + ThemeManager.getBackground() + ";");
+
+        navBar.setStyle("-fx-background-color: " + ThemeManager.getNavColor() +
+                "; -fx-padding: 16 40 16 20;");
+
+        javafx.application.Platform.runLater(() -> {
+            UIUtils.applyNavStyle(navHome, false);
+            UIUtils.applyNavStyle(navSentenceGen, false);
+            UIUtils.applyNavStyle(navAutoComplete, true);
+            UIUtils.applyNavStyle(navReports, false);
+            UIUtils.applyNavStyle(navImport, false);
+        });
+
+        if (themeBtn != null) {
+            themeBtn.setText(ThemeManager.isDark() ? "☀ Light" : "🌙 Dark");
+            themeBtn.setStyle("-fx-background-color: transparent; " +
+                    "-fx-text-fill: " + ThemeManager.getTextColor() + "; " +
+                    "-fx-font-size: 13px; -fx-cursor: hand; " +
+                    "-fx-border-color: " + ThemeManager.getTextColor() + "; " +
+                    "-fx-border-radius: 20; -fx-background-radius: 20; " +
+                    "-fx-padding: 4 12 4 12;");
+        }
+
+        suggestionsBar.getChildren().forEach(node -> {
+            if (node instanceof Button btn) {
+                btn.setStyle("-fx-background-color: " + ThemeManager.getCardColor() + "; " +
+                        "-fx-text-fill: " + ThemeManager.getTextColor() + "; " +
+                        "-fx-background-radius: 20; " +
+                        "-fx-border-color: " + ThemeManager.getBorderColor() + "; " +
+                        "-fx-padding: 6 14 6 14; -fx-font-size: 13px; -fx-cursor: hand;");
+            }
+        });
+    }
+
+    @Override
+    protected Region getRootNode() { return rootNode; }
+
+    @Override
+    protected String getCurrentPage() { return "AutoComplete"; }
 
     private void showSuggestions(String text) {
         suggestionsBar.getChildren().clear();
-
-        // Placeholder suggestions — backend will replace this
         String[] suggestions = {"example", "technical", "model"};
-
         for (String suggestion : suggestions) {
             Button btn = new Button(suggestion);
-            btn.setStyle("-fx-background-color: white; -fx-background-radius: 20; " +
+            btn.setStyle("-fx-background-color: " + ThemeManager.getCardColor() + "; " +
+                    "-fx-text-fill: " + ThemeManager.getTextColor() + "; " +
+                    "-fx-background-radius: 20; " +
+                    "-fx-border-color: " + ThemeManager.getBorderColor() + "; " +
                     "-fx-padding: 6 14 6 14; -fx-font-size: 13px; -fx-cursor: hand;");
             btn.setOnAction(e -> insertSuggestion(suggestion));
             suggestionsBar.getChildren().add(btn);
@@ -61,29 +115,8 @@ public class AutoCompleteController {
         suggestionsBar.getChildren().clear();
     }
 
-    private void navigateTo(String fxmlPath, javafx.scene.Node source) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-        Stage stage = (Stage) source.getScene().getWindow();
-        stage.setScene(new Scene(loader.load()));
-    }
-
-
-    @FXML
-    private void handleSentenceGen() throws Exception {
-        navigateTo("/com/sentencebuilder/SentenceGen.fxml", navSentenceGen);
-    }
-
-    @FXML
-    private void handleReports() throws Exception {
-        navigateTo("/com/sentencebuilder/Reports.fxml", navReports);
-    }
-
-    @FXML
-    private void handleImport() throws Exception {
-        navigateTo("/com/sentencebuilder/Import.fxml", navImport);
-    }
-
-    @FXML private void handleHome() throws Exception {
-        navigateTo("/com/sentencebuilder/Home.fxml", navHome);
-    }
+    @FXML private void handleHome() { navigateTo("/com/sentencebuilder/Home.fxml", navHome); }
+    @FXML private void handleSentenceGen() { navigateTo("/com/sentencebuilder/SentenceGen.fxml", navSentenceGen); }
+    @FXML private void handleReports() { navigateTo("/com/sentencebuilder/Reports.fxml", navReports); }
+    @FXML private void handleImport() { navigateTo("/com/sentencebuilder/Import.fxml", navImport); }
 }
