@@ -303,7 +303,7 @@ public class BigramModel {
         // Each element is a pair of (cumulative log-probability, word sequence).
         // Log-probabilities are used instead of raw probabilities to avoid underflow
         // when multiplying many small values together.
-        List<double[]> beamScores = new ArrayList<>();
+        List<Double> beamScores = new ArrayList<>();
         List<List<String>> beamSequences = new ArrayList<>();
         beamScores.add(new double[]{0.0});
         beamSequences.add(new ArrayList<>(List.of(startWord)));
@@ -324,9 +324,19 @@ public class BigramModel {
                 }
 
                 for (Prediction p : next) {
+                    String nextWord = p.word();
+
+                    // prevent self-loop repetition
+                    if (nextWord.equals(lastWord)) continue;
+
+                    // prevent cycles
+                    if (newSeq.contains(nextWord)) continue;
+
                     double newScore = beamScores.get(b)[0] + Math.log(p.probability() + 1e-10);
+
                     List<String> newSeq = new ArrayList<>(beamSequences.get(b));
-                    newSeq.add(p.word());
+                    newSeq.add(nextWord);
+
                     candidateScores.add(new double[]{newScore});
                     candidateSequences.add(newSeq);
                 }

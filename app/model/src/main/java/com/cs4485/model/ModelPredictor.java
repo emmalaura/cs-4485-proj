@@ -114,3 +114,8 @@ public class ModelPredictor {
         return normalized.isEmpty() ? null : normalized;
     }
 }
+
+List<Prediction> preds = db.getPredictions("bigram", 10);
+preds.forEach(p ->
+        System.out.println(p.word() + " -> " + p.probability())
+        );

@@ -123,14 +123,37 @@ public class SentenceGenController extends BaseController {
             return;
         }
 
+// ✅ ONLY ONCE
+        String cleaned = input.toLowerCase().trim();
+        String[] tokens = cleaned.split("\\s+");
+
+        if (tokens.length == 0 || tokens[0].isEmpty()) {
+            addResponseBubble("Please enter a valid word or phrase.");
+            return;
+        }
+
+// use LAST WORD
+        String seed = tokens[tokens.length - 1];
+
         new Thread(() -> {
             try {
-                List<String> words = ModelPredictor.completeSentence(model, input, 10, GenerationStrategy.BEAM);
-                String sentence = String.join(" ", words);
-                javafx.application.Platform.runLater(() -> addResponseBubble(sentence));
+                List<String> words = ModelPredictor.completeSentence(
+                        model,
+                        seed,
+                        10,
+                        GenerationStrategy.BEAM
+                );
+
+                String sentence = cleaned + " " + String.join(" ", words);
+
+                javafx.application.Platform.runLater(() ->
+                        addResponseBubble(sentence)
+                );
+
             } catch (Exception e) {
                 javafx.application.Platform.runLater(() ->
-                        addResponseBubble("Error generating sentence: " + e.getMessage()));
+                        addResponseBubble("Error generating sentence: " + e.getMessage())
+                );
             }
         }).start();
     }
