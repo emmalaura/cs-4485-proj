@@ -1,5 +1,6 @@
 package com.sentencebuilder;
 
+import databaseConnections.WordQueries;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -28,15 +29,8 @@ public class ReportsController extends BaseController {
     @FXML private Label wordListTitle;
     @FXML private Label sentenceTitle;
 
-    private final List<WordEntry> wordEntries = new ArrayList<>(Arrays.asList(
-            new WordEntry("bigram", 12, "2026-03-01", "textbook.txt"),
-            new WordEntry("algorithm", 9, "2026-03-02", "manual.txt"),
-            new WordEntry("markov", 7, "2026-03-01", "textbook.txt"),
-            new WordEntry("language", 15, "2026-03-03", "textbook.txt"),
-            new WordEntry("model", 11, "2026-03-02", "manual.txt"),
-            new WordEntry("token", 5, "2026-03-04", "manual.txt"),
-            new WordEntry("probability", 8, "2026-03-03", "textbook.txt")
-    ));
+    private static List<WordEntry> wordEntries = new ArrayList<>();
+
 
     private final List<SentenceEntry> sentenceEntries = new ArrayList<>(Arrays.asList(
             new SentenceEntry("A bigram language model predicts the next token.", "2026-03-10"),
@@ -66,7 +60,14 @@ public class ReportsController extends BaseController {
         sortSelector.setValue("Alphabetical (A-Z)");
         sortSelector.setOnAction(e -> renderWordList(sortSelector.getValue()));
 
-        renderWordList("Alphabetical (A-Z)");
+        if (wordEntries.isEmpty()) {
+            new Thread(() -> {
+                loadWordsFromDB();
+                javafx.application.Platform.runLater(() -> renderWordList(sortSelector.getValue()));
+            }).start();
+        } else {
+            renderWordList(sortSelector.getValue());
+        }
         renderSentenceList();
 
         initBase();
@@ -80,6 +81,21 @@ public class ReportsController extends BaseController {
                 renderWordList(sortSelector.getValue());
                 renderSentenceList();
             });
+        }
+    }
+
+    private void loadWordsFromDB() {
+        wordEntries.clear();
+        List<WordQueries.WordRecord> records = WordQueries.getAllWords(false);
+        for (WordQueries.WordRecord record : records) {
+            String sourceFile = WordQueries.getSourceFileForWord(record.wordId);
+            String dateAdded = WordQueries.getDateAddedForWord(record.wordId);
+            wordEntries.add(new WordEntry(
+                    record.word,
+                    record.totalOccurrence,
+                    dateAdded,
+                    sourceFile
+            ));
         }
     }
 

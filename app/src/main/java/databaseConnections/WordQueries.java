@@ -132,4 +132,31 @@ public class WordQueries {
             System.out.println("Error updating word info: " + e.getMessage());
         }
     }
+
+    public static String getSourceFileForWord(int wordId) {
+        String sql = "SELECT f.fileName FROM imported_files f " +
+                "JOIN words w ON DATE(f.importedAt) = DATE(w.createdAt) " +
+                "WHERE w.wordId = ? LIMIT 1";
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, wordId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) return rs.getString("fileName");
+        } catch (SQLException e) {
+            System.out.println("Error getting source file: " + e.getMessage());
+        }
+        return "N/A";
+    }
+    public static String getDateAddedForWord(int wordId) {
+        String sql = "SELECT createdAt FROM words WHERE wordId = ?";
+        try (Connection conn = dbConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, wordId);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) return rs.getString("createdAt").substring(0, 10);
+        } catch (SQLException e) {
+            System.out.println("Error getting date added: " + e.getMessage());
+        }
+        return "N/A";
+    }
 }
