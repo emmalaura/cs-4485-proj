@@ -10,6 +10,11 @@ import java.util.List;
 
 public class GeneratedSentencesQueries {
 
+    public static class SentenceRecord {
+        public String sentenceText;
+        public String createdAt;
+    }
+
     /**
      * Inserts a generated sentence into the database.
      *
@@ -67,6 +72,32 @@ public class GeneratedSentencesQueries {
             
             while (rs.next()) {
                 sentences.add(rs.getString("sentenceText"));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error retrieving generated sentences: " + e.getMessage());
+        }
+        
+        return sentences;
+    }
+
+    /**
+     * Retrieves all generated sentences with their creation dates.
+     *
+     * @return A list of SentenceRecord objects.
+     */
+    public static List<SentenceRecord> getAllGeneratedSentenceRecords() {
+        List<SentenceRecord> sentences = new ArrayList<>();
+        String sql = "SELECT sentenceText, DATE(createdAt) as dateStr FROM generated_sentences ORDER BY createdAt DESC";
+        
+        try (Connection conn = dbConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                SentenceRecord sr = new SentenceRecord();
+                sr.sentenceText = rs.getString("sentenceText");
+                sr.createdAt = rs.getString("dateStr");
+                sentences.add(sr);
             }
         } catch (SQLException e) {
             System.out.println("Error retrieving generated sentences: " + e.getMessage());

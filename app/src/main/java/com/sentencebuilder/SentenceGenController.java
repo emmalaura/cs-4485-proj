@@ -11,6 +11,7 @@ import com.cs4485.model.DBInterface;
 import com.cs4485.model.GenerationStrategy;
 import com.cs4485.model.ModelPredictor;
 import com.cs4485.model.SmoothingMethod;
+import databaseConnections.GeneratedSentencesQueries;
 import java.util.List;
 
 public class SentenceGenController extends BaseController {
@@ -139,12 +140,15 @@ public class SentenceGenController extends BaseController {
             try {
                 List<String> words = ModelPredictor.completeSentence(
                         model,
-                        seed,
+                        cleaned,
                         10,
                         GenerationStrategy.BEAM
                 );
 
-                String sentence = cleaned + " " + String.join(" ", words);
+                String sentence = String.join(" ", words);
+
+                // Insert the generated sentence into the database
+                GeneratedSentencesQueries.insertGeneratedSentence(sentence, null, "BEAM", words.size());
 
                 javafx.application.Platform.runLater(() ->
                         addResponseBubble(sentence)

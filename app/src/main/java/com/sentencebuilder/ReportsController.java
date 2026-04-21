@@ -1,6 +1,7 @@
 package com.sentencebuilder;
 
 import databaseConnections.WordQueries;
+import databaseConnections.GeneratedSentencesQueries;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -32,14 +33,7 @@ public class ReportsController extends BaseController {
     private static List<WordEntry> wordEntries = new ArrayList<>();
 
 
-    private final List<SentenceEntry> sentenceEntries = new ArrayList<>(Arrays.asList(
-            new SentenceEntry("A bigram language model predicts the next token.", "2026-03-10"),
-            new SentenceEntry("The algorithm uses probability to generate text.", "2026-03-11"),
-            new SentenceEntry("A bigram language model predicts the next token.", "2026-03-12"),
-            new SentenceEntry("Markov chain model simplifies language modeling.", "2026-03-13"),
-            new SentenceEntry("The algorithm uses probability to generate text.", "2026-03-14"),
-            new SentenceEntry("Token probability defines the markov model.", "2026-03-15")
-    ));
+    private static List<SentenceEntry> sentenceEntries = new ArrayList<>();
 
     @FXML
     public void initialize() {
@@ -60,15 +54,16 @@ public class ReportsController extends BaseController {
         sortSelector.setValue("Alphabetical (A-Z)");
         sortSelector.setOnAction(e -> renderWordList(sortSelector.getValue()));
 
-        if (wordEntries.isEmpty()) {
-            new Thread(() -> {
+        new Thread(() -> {
+            if (wordEntries.isEmpty()) {
                 loadWordsFromDB();
-                javafx.application.Platform.runLater(() -> renderWordList(sortSelector.getValue()));
-            }).start();
-        } else {
-            renderWordList(sortSelector.getValue());
-        }
-        renderSentenceList();
+            }
+            loadSentencesFromDB();
+            javafx.application.Platform.runLater(() -> {
+                renderWordList(sortSelector.getValue());
+                renderSentenceList();
+            });
+        }).start();
 
         initBase();
         refreshTheme();
@@ -96,6 +91,14 @@ public class ReportsController extends BaseController {
                     dateAdded,
                     sourceFile
             ));
+        }
+    }
+
+    private void loadSentencesFromDB() {
+        sentenceEntries.clear();
+        List<GeneratedSentencesQueries.SentenceRecord> records = GeneratedSentencesQueries.getAllGeneratedSentenceRecords();
+        for (GeneratedSentencesQueries.SentenceRecord record : records) {
+            sentenceEntries.add(new SentenceEntry(record.sentenceText, record.createdAt != null ? record.createdAt : "N/A"));
         }
     }
 
