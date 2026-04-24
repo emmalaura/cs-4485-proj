@@ -414,7 +414,7 @@ public class BigramCountertoDB {
 
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.err.println("Usage: java BigramCounter <file1.txt> [file2.txt ...]");
+            System.err.println("Usage: java BigramCounter <folder OR file1.txt ...>");
             System.exit(1);
         }
 
@@ -422,8 +422,6 @@ public class BigramCountertoDB {
 
         try {
             conn = dbConnection.getConnection();
-
-            // 🔥 ONE transaction for entire run
             conn.setAutoCommit(false);
 
             BigramCountertoDB counter = new BigramCountertoDB();
@@ -431,16 +429,38 @@ public class BigramCountertoDB {
             // Load DB state
             counter.loadExistingFromDB(conn);
 
-            // Process input files
-            for (String arg : args) {
-                Path file = Paths.get(arg);
+            Path inputPath = Paths.get(args[0]);
+
+            List<Path> filesToProcess = new ArrayList<>();
+
+
+            if (Files.isDirectory(inputPath)) {
+                System.out.println("Processing directory: " + inputPath);
+
+                try {
+                    Files.walk(inputPath)
+                        .filter(Files::isRegularFile)
+                        .filter(p -> p.toString().toLowerCase().endsWith(".txt"))
+                        .forEach(filesToProcess::add);
+                } catch (IOException e) {
+                    throw new RuntimeException("Error reading directory: " + inputPath, e);
+                }
+
+            } else {
+
+                for (String arg : args) {
+                    filesToProcess.add(Paths.get(arg));
+                }
+            }
+
+
+            for (Path file : filesToProcess) {
                 System.out.println("Processing: " + file);
                 counter.processFile(file);
             }
 
+
             counter.flushToDB(conn);
-
-
             conn.commit();
 
             System.out.println("\nAll data committed successfully.");
@@ -459,7 +479,6 @@ public class BigramCountertoDB {
             }
 
         } finally {
-            // Close connection manually
             if (conn != null) {
                 try {
                     conn.close();

@@ -61,3 +61,12 @@ there should be our tables in there.
 
 #After compeleting those steps, go to dbConnection.java and run it. It should say DB CONNECTED!
 
+#For maintaining sync:
+Import sql/db_dump.sql to your local db if it differs using this command
+```bash
+mysql -u javauser -p CS4485DB < db_dump.sql
+```
+Export your own database if you process and add new data using this command
+```bash
+mysqldump -u javauser -p --no-tablespaces CS4485DB > db_dump.sql
+``` 
