@@ -87,18 +87,46 @@ public class ImportedFilesQueries {
     public static List<String> getAllImportedFiles() {
         List<String> files = new ArrayList<>();
         String sql = "SELECT fileName FROM imported_files ORDER BY importedAt DESC";
-        
+
         try (Connection conn = dbConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-            
+
             while (rs.next()) {
                 files.add(rs.getString("fileName"));
             }
         } catch (SQLException e) {
             System.out.println("Error retrieving imported files: " + e.getMessage());
         }
-        
+
+        return files;
+    }
+
+    public static class ImportedFileRecord {
+        public String fileName;
+        public int wordCount;
+        public java.sql.Timestamp importedAt;
+    }
+
+    public static List<ImportedFileRecord> getAllImportedFilesDetailed() {
+        List<ImportedFileRecord> files = new ArrayList<>();
+        String sql = "SELECT fileName, wordCount, importedAt FROM imported_files ORDER BY importedAt DESC";
+
+        try (Connection conn = dbConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                ImportedFileRecord rec = new ImportedFileRecord();
+                rec.fileName = rs.getString("fileName");
+                rec.wordCount = rs.getInt("wordCount");
+                rec.importedAt = rs.getTimestamp("importedAt");
+                files.add(rec);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error retrieving detailed imported files: " + e.getMessage());
+        }
+
         return files;
     }
 }

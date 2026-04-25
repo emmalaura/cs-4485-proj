@@ -98,11 +98,16 @@
                        style="-fx-font-size: 14px;"/>
             </HBox>
 
-            <VBox fx:id="importHistoryList" spacing="4">
-                <Label text="No files imported yet. Import your first file above."
-                       style="-fx-font-size: 14px; -fx-padding: 16 0 0 0;"
-                       maxWidth="Infinity" alignment="CENTER"/>
-            </VBox>
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                        style="-fx-background-color: transparent; -fx-background: transparent;">
+                <content>
+                    <VBox fx:id="importHistoryList" spacing="4">
+                        <Label text="No files imported yet. Import your first file above."
+                               style="-fx-font-size: 14px; -fx-padding: 16 0 0 0;"
+                               maxWidth="Infinity" alignment="CENTER"/>
+                    </VBox>
+                </content>
+            </ScrollPane>
 
         </VBox>
 

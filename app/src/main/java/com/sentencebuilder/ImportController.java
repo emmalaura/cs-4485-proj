@@ -59,7 +59,8 @@ public class ImportController extends BaseController {
 
     private void loadImportHistory() {
         new Thread(() -> {
-            java.util.List<String> files = ImportedFilesQueries.getAllImportedFiles();
+            java.util.List<ImportedFilesQueries.ImportedFileRecord> files =
+                ImportedFilesQueries.getAllImportedFilesDetailed();
             javafx.application.Platform.runLater(() -> {
                 importHistoryList.getChildren().clear();
                 if (files.isEmpty()) {
@@ -67,10 +68,13 @@ public class ImportController extends BaseController {
                     empty.setStyle("-fx-text-fill: " + ThemeManager.getSubText() + "; -fx-font-size: 14px;");
                     importHistoryList.getChildren().add(empty);
                 } else {
-                    for (String fileName : files) {
-                        addHistoryRow(fileName, "—",
-                            LocalDate.now().format(DateTimeFormatter.ofPattern("MM/dd/yyyy")),
-                            "✓ Imported");
+                    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+                    for (ImportedFilesQueries.ImportedFileRecord rec : files) {
+                        String dateStr = rec.importedAt != null
+                            ? rec.importedAt.toLocalDateTime().toLocalDate().format(fmt)
+                            : LocalDate.now().format(fmt);
+                        addHistoryRow(rec.fileName, rec.wordCount + " words",
+                            dateStr, "✓ Imported");
                     }
                 }
             });

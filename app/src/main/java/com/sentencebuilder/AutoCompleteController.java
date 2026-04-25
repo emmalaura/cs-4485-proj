@@ -8,6 +8,7 @@ import javafx.scene.image.ImageView;
 import com.cs4485.model.DBInterface;
 import com.cs4485.model.ModelPredictor;
 import com.cs4485.model.Prediction;
+import databaseConnections.WordQueries;
 import java.util.List;
 
 public class AutoCompleteController extends BaseController {
@@ -120,19 +121,61 @@ public class AutoCompleteController extends BaseController {
             try {
                 List<Prediction> predictions = ModelPredictor.getNextWords(db, lastWord, 4);
                 System.out.println("AutoComplete: got " + predictions.size() + " suggestions.");
-                javafx.application.Platform.runLater(() -> {
-                    suggestionsBar.getChildren().clear();
-                    for (Prediction p : predictions) {
-                        Button btn = new Button(p.word());
-                        btn.setStyle(suggestionBtnStyle());
-                        btn.setOnAction(e -> insertSuggestion(p.word()));
-                        suggestionsBar.getChildren().add(btn);
-                    }
-                });
+                if (predictions.isEmpty()) {
+                    String normalized = lastWord.toLowerCase().trim();
+                    int wordId = WordQueries.getWordId(normalized);
+                    javafx.application.Platform.runLater(() -> {
+                        suggestionsBar.getChildren().clear();
+                        if (wordId == -1) {
+                            showAddWordOption(normalized);
+                        }
+                    });
+                } else {
+                    javafx.application.Platform.runLater(() -> {
+                        suggestionsBar.getChildren().clear();
+                        for (Prediction p : predictions) {
+                            Button btn = new Button(p.word());
+                            btn.setStyle(suggestionBtnStyle());
+                            btn.setOnAction(e -> insertSuggestion(p.word()));
+                            suggestionsBar.getChildren().add(btn);
+                        }
+                    });
+                }
             } catch (Exception e) {
                 System.err.println("AutoComplete suggestion error: " + e.getMessage());
             }
         }).start();
+    }
+
+    private void showAddWordOption(String word) {
+        Label info = new Label("\"" + word + "\" not found");
+        info.setStyle("-fx-font-size: 13px; -fx-padding: 6 8 6 0; " +
+                "-fx-text-fill: " + ThemeManager.getSubText() + ";");
+        Button addBtn = new Button("+ Add to dictionary");
+        addBtn.setStyle(suggestionBtnStyle());
+        addBtn.setOnAction(e -> handleAddWord(word));
+        suggestionsBar.getChildren().addAll(info, addBtn);
+    }
+
+    private void handleAddWord(String word) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                "Add '" + word + "' to the database?",
+                ButtonType.OK, ButtonType.CANCEL);
+        confirm.setHeaderText(null);
+        confirm.showAndWait().ifPresent(result -> {
+            if (result == ButtonType.OK) {
+                new Thread(() -> {
+                    WordQueries.insertOrUpdateWord(word, false, false);
+                    javafx.application.Platform.runLater(() -> {
+                        suggestionsBar.getChildren().clear();
+                        Label confirmation = new Label("Added \"" + word + "\"");
+                        confirmation.setStyle("-fx-font-size: 13px; -fx-padding: 6 8 6 0; " +
+                                "-fx-text-fill: " + ThemeManager.getTextColor() + ";");
+                        suggestionsBar.getChildren().add(confirmation);
+                    });
+                }).start();
+            }
+        });
     }
 
     private void insertSuggestion(String suggestion) {
