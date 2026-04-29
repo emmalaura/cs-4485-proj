@@ -10,6 +10,7 @@ import com.cs4485.model.ModelPredictor;
 import com.cs4485.model.Prediction;
 import databaseConnections.WordQueries;
 import java.util.List;
+import javafx.geometry.Pos;
 
 public class AutoCompleteController extends BaseController {
 
@@ -24,8 +25,130 @@ public class AutoCompleteController extends BaseController {
     @FXML private Label navImport;
     @FXML private TextArea writingArea;
     @FXML private HBox suggestionsBar;
+    @FXML private TextField searchField;
+    @FXML private Label newChatButton;
+    @FXML private VBox chatListBox;
 
     private DBInterface db;
+    private String currentChatId;
+    private boolean loadingChat = false;
+
+
+    private void setupChatHistory() {
+        if (newChatButton != null) {
+            newChatButton.setOnMouseClicked(e -> startNewChat());
+        }
+
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, oldText, newText) -> renderChatHistory());
+        }
+
+        renderChatHistory();
+    }
+
+    private void startNewChat() {
+        ChatHistoryManager.Chat chat = ChatHistoryManager.createChat(getCurrentPage());
+        currentChatId = chat.getId();
+
+        loadingChat = true;
+        writingArea.clear();
+        loadingChat = false;
+
+        suggestionsBar.getChildren().clear();
+        renderChatHistory();
+    }
+
+    private void saveWritingChat(String text) {
+        if (loadingChat) return;
+
+        String trimmed = text == null ? "" : text.trim();
+        if (trimmed.isEmpty()) return;
+
+        if (currentChatId == null || ChatHistoryManager.getChat(currentChatId) == null) {
+            ChatHistoryManager.Chat chat = ChatHistoryManager.createChat(getCurrentPage());
+            currentChatId = chat.getId();
+        }
+
+        ChatHistoryManager.Chat chat = ChatHistoryManager.getChat(currentChatId);
+        if (chat != null) {
+            chat.setTitle(ChatHistoryManager.makeTitle(trimmed));
+            chat.setContent(text);
+            renderChatHistory();
+        }
+    }
+
+    private void renderChatHistory() {
+        if (chatListBox == null) return;
+
+        chatListBox.getChildren().clear();
+
+        String searchText = searchField == null ? "" : searchField.getText();
+
+        for (ChatHistoryManager.Chat chat : ChatHistoryManager.getChats(getCurrentPage(), searchText)) {
+            Label title = new Label(chat.getTitle());
+            title.setMaxWidth(Double.MAX_VALUE);
+            title.setWrapText(true);
+            title.setStyle("-fx-font-size: 14px; -fx-text-fill: " + ThemeManager.getTextColor() + ";");
+
+            Button deleteButton = new Button("✕");
+            deleteButton.setStyle("-fx-background-color: transparent; " +
+                    "-fx-text-fill: " + ThemeManager.getSubText() + "; " +
+                    "-fx-font-size: 12px; -fx-cursor: hand;");
+
+            HBox row = new HBox(8, title, deleteButton);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(title, Priority.ALWAYS);
+
+            String background = chat.getId().equals(currentChatId)
+                    ? ThemeManager.getCardColor()
+                    : "transparent";
+
+            row.setStyle("-fx-background-color: " + background + "; " +
+                    "-fx-background-radius: 8; " +
+                    "-fx-padding: 10 12 10 12; " +
+                    "-fx-cursor: hand;");
+
+            row.setOnMouseClicked(e -> loadChat(chat.getId()));
+
+            deleteButton.setOnAction(e -> {
+                ChatHistoryManager.deleteChat(chat.getId());
+                if (chat.getId().equals(currentChatId)) {
+                    currentChatId = null;
+
+                    loadingChat = true;
+                    writingArea.clear();
+                    loadingChat = false;
+
+                    suggestionsBar.getChildren().clear();
+                }
+                renderChatHistory();
+                e.consume();
+            });
+
+            chatListBox.getChildren().add(row);
+        }
+    }
+
+    private void loadChat(String chatId) {
+        ChatHistoryManager.Chat chat = ChatHistoryManager.getChat(chatId);
+        if (chat == null) return;
+
+        currentChatId = chatId;
+
+        loadingChat = true;
+        writingArea.setText(chat.getContent());
+        writingArea.positionCaret(writingArea.getText().length());
+        loadingChat = false;
+
+        suggestionsBar.getChildren().clear();
+        renderChatHistory();
+    }
+
+    @FXML private void handleHome() { navigateTo("/com/sentencebuilder/Home.fxml", navHome); }
+    @FXML private void handleSentenceGen() { navigateTo("/com/sentencebuilder/SentenceGen.fxml", navSentenceGen); }
+    @FXML private void handleReports() { navigateTo("/com/sentencebuilder/Reports.fxml", navReports); }
+    @FXML private void handleImport() { navigateTo("/com/sentencebuilder/Import.fxml", navImport); }
 
     @FXML
     public void initialize() {
@@ -48,10 +171,10 @@ public class AutoCompleteController extends BaseController {
 
         // Trigger suggestions after every space or comma
         writingArea.textProperty().addListener((obs, oldText, newText) -> {
+            saveWritingChat(newText);
             if (newText.endsWith(" ") || newText.endsWith(",")) {
                 showSuggestions(newText.trim());
             } else {
-                // Clear suggestions if user deletes back
                 if (newText.length() < oldText.length()) {
                     suggestionsBar.getChildren().clear();
                 }
@@ -61,12 +184,14 @@ public class AutoCompleteController extends BaseController {
         UIUtils.updateLogo(logoImage);
         initBase();
         refreshTheme();
+        setupChatHistory();
 
         if (themeBtn != null) {
             themeBtn.setOnAction(e -> {
                 ThemeManager.toggleTheme();
                 UIUtils.updateLogo(logoImage);
                 refreshTheme();
+                renderChatHistory();
             });
         }
     }
@@ -198,8 +323,4 @@ public class AutoCompleteController extends BaseController {
                "-fx-padding: 6 14 6 14; -fx-font-size: 13px; -fx-cursor: hand;";
     }
 
-    @FXML private void handleHome() { navigateTo("/com/sentencebuilder/Home.fxml", navHome); }
-    @FXML private void handleSentenceGen() { navigateTo("/com/sentencebuilder/SentenceGen.fxml", navSentenceGen); }
-    @FXML private void handleReports() { navigateTo("/com/sentencebuilder/Reports.fxml", navReports); }
-    @FXML private void handleImport() { navigateTo("/com/sentencebuilder/Import.fxml", navImport); }
 }

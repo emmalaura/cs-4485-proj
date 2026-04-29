@@ -47,13 +47,13 @@
 
         <!-- LEFT SIDEBAR -->
         <VBox prefWidth="280"
-              style="-fx-border-width: 0 1 0 0;">
+              style="-fx-border-color: #bbbbbb; -fx-border-width: 0 1 0 0;">
 
             <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10 16 10 16;">
                 <Label text="☰" style="-fx-font-size: 16px;"/>
                 <Label text="Chat History" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Label text="⊕" style="-fx-font-size: 16px;"/>
+                <Label fx:id="newChatButton" text="⊕" style="-fx-font-size: 16px; -fx-cursor: hand;"/>
             </HBox>
 
             <HBox alignment="CENTER_LEFT" spacing="8"
@@ -70,13 +70,8 @@
 
             <Label text="Chats" style="-fx-font-size: 13px; -fx-padding: 4 0 4 16;"/>
 
-            <VBox spacing="4" style="-fx-padding: 0 8 0 8;">
-                <Label text="Bigram Language Model" maxWidth="Infinity"
-                       style="-fx-background-radius: 8;
-                              -fx-padding: 10 12 10 12; -fx-font-size: 14px;"/>
-                <Label text="JavaFX" maxWidth="Infinity"
-                       style="-fx-padding: 10 12 10 12; -fx-font-size: 14px;"/>
-            </VBox>
+            <VBox fx:id="chatListBox" spacing="4" style="-fx-padding: 0 8 0 8;"/>
+
         </VBox>
 
         <!-- MAIN CONTENT -->

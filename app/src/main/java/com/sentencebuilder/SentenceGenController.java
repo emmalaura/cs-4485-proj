@@ -17,6 +17,8 @@ import java.util.List;
 public class SentenceGenController extends BaseController {
 
     @FXML private VBox rootNode;
+    @FXML private Label newChatButton;
+    @FXML private VBox chatListBox;
     @FXML private HBox navBar;
     @FXML private Button themeBtn;
     @FXML private ImageView logoImage;
@@ -31,6 +33,102 @@ public class SentenceGenController extends BaseController {
     private DBInterface db;
     private BigramModel model;
     private boolean modelReady = false;
+    private String currentChatId;
+
+
+    private void setupChatHistory() {
+        if (newChatButton != null) {
+            newChatButton.setOnMouseClicked(e -> startNewChat());
+        }
+
+        if (searchField != null) {
+            searchField.textProperty().addListener((obs, oldText, newText) -> renderChatHistory());
+        }
+
+        renderChatHistory();
+    }
+
+    private void startNewChat() {
+        ChatHistoryManager.Chat chat = ChatHistoryManager.createChat(getCurrentPage());
+        currentChatId = chat.getId();
+        messageArea.getChildren().clear();
+        inputField.clear();
+        renderChatHistory();
+    }
+
+    private void ensureCurrentChat(String firstMessage) {
+        if (currentChatId == null || ChatHistoryManager.getChat(currentChatId) == null) {
+            ChatHistoryManager.Chat chat = ChatHistoryManager.createChat(getCurrentPage());
+            chat.setTitle(ChatHistoryManager.makeTitle(firstMessage));
+            currentChatId = chat.getId();
+        }
+    }
+
+    private void renderChatHistory() {
+        if (chatListBox == null) return;
+
+        chatListBox.getChildren().clear();
+
+        String searchText = searchField == null ? "" : searchField.getText();
+
+        for (ChatHistoryManager.Chat chat : ChatHistoryManager.getChats(getCurrentPage(), searchText)) {
+            Label title = new Label(chat.getTitle());
+            title.setMaxWidth(Double.MAX_VALUE);
+            title.setWrapText(true);
+            title.setStyle("-fx-font-size: 14px; -fx-text-fill: " + ThemeManager.getTextColor() + ";");
+
+            Button deleteButton = new Button("✕");
+            deleteButton.setStyle("-fx-background-color: transparent; " +
+                    "-fx-text-fill: " + ThemeManager.getSubText() + "; " +
+                    "-fx-font-size: 12px; -fx-cursor: hand;");
+
+            HBox row = new HBox(8, title, deleteButton);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.setMaxWidth(Double.MAX_VALUE);
+            HBox.setHgrow(title, Priority.ALWAYS);
+
+            String background = chat.getId().equals(currentChatId)
+                    ? ThemeManager.getCardColor()
+                    : "transparent";
+
+            row.setStyle("-fx-background-color: " + background + "; " +
+                    "-fx-background-radius: 8; " +
+                    "-fx-padding: 10 12 10 12; " +
+                    "-fx-cursor: hand;");
+
+            row.setOnMouseClicked(e -> loadChat(chat.getId()));
+
+            deleteButton.setOnAction(e -> {
+                ChatHistoryManager.deleteChat(chat.getId());
+                if (chat.getId().equals(currentChatId)) {
+                    currentChatId = null;
+                    messageArea.getChildren().clear();
+                }
+                renderChatHistory();
+                e.consume();
+            });
+
+            chatListBox.getChildren().add(row);
+        }
+    }
+
+    private void loadChat(String chatId) {
+        ChatHistoryManager.Chat chat = ChatHistoryManager.getChat(chatId);
+        if (chat == null) return;
+
+        currentChatId = chatId;
+        messageArea.getChildren().clear();
+
+        for (ChatHistoryManager.ChatMessage message : chat.getMessages()) {
+            if (message.isUser()) {
+                addUserBubble(message.getText());
+            } else {
+                addResponseBubble(message.getText());
+            }
+        }
+
+        renderChatHistory();
+    }
 
     @FXML
     public void initialize() {
@@ -44,12 +142,14 @@ public class SentenceGenController extends BaseController {
 
         initBase();
         refreshTheme();
+        setupChatHistory();
 
         if (themeBtn != null) {
             themeBtn.setOnAction(e -> {
                 ThemeManager.toggleTheme();
                 UIUtils.updateLogo(logoImage);
                 refreshTheme();
+                renderChatHistory();
             });
         }
         // Connect to DB and load model in background thread so UI doesn't freeze
@@ -116,11 +216,22 @@ public class SentenceGenController extends BaseController {
         String input = inputField.getText().trim();
         if (input.isEmpty()) return;
 
+        ensureCurrentChat(input);
         addUserBubble(input);
+        ChatHistoryManager.Chat currentChat = ChatHistoryManager.getChat(currentChatId);
+        if(currentChat != null){
+            currentChat.addMessage(true, input);
+        }
+        renderChatHistory();
         inputField.clear();
 
         if (!modelReady) {
-            addResponseBubble("Model is still loading, please wait...");
+            String response = "Model is still loading, please wait...";
+            addResponseBubble(response);
+            if (currentChat != null) {
+                currentChat.addMessage(false, response);
+                renderChatHistory();
+            }
             return;
         }
 
@@ -129,7 +240,12 @@ public class SentenceGenController extends BaseController {
         String[] tokens = cleaned.split("\\s+");
 
         if (tokens.length == 0 || tokens[0].isEmpty()) {
-            addResponseBubble("Please enter a valid word or phrase.");
+            String response = "Please enter a valid word or phrase.";
+            addResponseBubble(response);
+            if (currentChat != null) {
+                currentChat.addMessage(false, response);
+                renderChatHistory();
+            }
             return;
         }
 
@@ -150,14 +266,25 @@ public class SentenceGenController extends BaseController {
                 // Insert the generated sentence into the database
                 GeneratedSentencesQueries.insertGeneratedSentence(sentence, null, "BEAM", words.size());
 
-                javafx.application.Platform.runLater(() ->
-                        addResponseBubble(sentence)
-                );
+                javafx.application.Platform.runLater(() -> {
+                    addResponseBubble(sentence);
+                    ChatHistoryManager.Chat chat = ChatHistoryManager.getChat(currentChatId);
+                    if (chat != null) {
+                        chat.addMessage(false, sentence);
+                    }
+                    renderChatHistory();
+                });
 
             } catch (Exception e) {
-                javafx.application.Platform.runLater(() ->
-                        addResponseBubble("Error generating sentence: " + e.getMessage())
-                );
+                javafx.application.Platform.runLater(() -> {
+                    String response = "Error generating sentence: " + e.getMessage();
+                    addResponseBubble(response);
+                    ChatHistoryManager.Chat chat = ChatHistoryManager.getChat(currentChatId);
+                    if (chat != null) {
+                        chat.addMessage(false, response);
+                    }
+                    renderChatHistory();
+                });
             }
         }).start();
     }

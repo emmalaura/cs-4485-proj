@@ -10,35 +10,34 @@
       style="-fx-background-color: transparent;"
       prefWidth="1280" prefHeight="900">
 
-    <!-- TOP NAV BAR - full width -->
+    <!-- TOP NAV BAR -->
     <HBox fx:id="navBar" alignment="CENTER_LEFT" spacing="40"
-          style="-fx-background-color: transparent; -fx-padding: 16 40 16 20;"
-          prefWidth="Infinity">
+          style="-fx-background-color: transparent; -fx-padding: 16 40 16 20;">
 
         <ImageView fx:id="logoImage" fitWidth="60" fitHeight="60" preserveRatio="true"/>
 
         <Region HBox.hgrow="ALWAYS"/>
 
         <HBox spacing="40" alignment="CENTER">
-            <Label text="Home" style="-fx-font-size: 16px; -fx-cursor: hand;"
+            <Label text="Home" style="-fx-font-size: 18px; -fx-cursor: hand;"
                    fx:id="navHome" onMouseClicked="#handleHome"/>
-            <Label text="Sentence Gen" style="-fx-font-size: 16px; -fx-cursor: hand;"
+            <Label text="Sentence Gen" style="-fx-font-size: 18px; -fx-cursor: hand;"
                    fx:id="navSentenceGen" onMouseClicked="#handleSentenceGen"/>
             <Label fx:id="navAutoComplete" text="Auto-complete"
                    style="-fx-font-size: 18px; -fx-padding: 4 0 4 0;"/>
-            <Label text="Reports" style="-fx-font-size: 16px; -fx-cursor: hand;"
+            <Label text="Reports" style="-fx-font-size: 18px; -fx-cursor: hand;"
                    fx:id="navReports" onMouseClicked="#handleReports"/>
-            <Label text="Import" style="-fx-font-size: 16px; -fx-cursor: hand;"
+            <Label text="Import" style="-fx-font-size: 18px; -fx-cursor: hand;"
                    fx:id="navImport" onMouseClicked="#handleImport"/>
             <Button fx:id="themeBtn"
                     style="-fx-background-color: transparent;
-                       -fx-text-fill: #888888;
-                       -fx-font-size: 13px;
-                       -fx-cursor: hand;
-                       -fx-border-color: #888888;
-                       -fx-border-radius: 20;
-                       -fx-background-radius: 20;
-                       -fx-padding: 4 12 4 12;"/>
+                           -fx-text-fill: #888888;
+                           -fx-font-size: 13px;
+                           -fx-cursor: hand;
+                           -fx-border-color: #888888;
+                           -fx-border-radius: 20;
+                           -fx-background-radius: 20;
+                           -fx-padding: 4 12 4 12;"/>
         </HBox>
 
     </HBox>
@@ -48,13 +47,13 @@
 
         <!-- LEFT SIDEBAR -->
         <VBox prefWidth="280"
-              style="-fx-border-width: 0 1 0 0;">
+              style="-fx-border-color: #bbbbbb; -fx-border-width: 0 1 0 0;">
 
             <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10 16 10 16;">
                 <Label text="☰" style="-fx-font-size: 16px;"/>
                 <Label text="Chat History" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Label text="⊕" style="-fx-font-size: 16px;"/>
+                <Label fx:id="newChatButton" text="⊕" style="-fx-font-size: 16px; -fx-cursor: hand;"/>
             </HBox>
 
             <HBox alignment="CENTER_LEFT" spacing="8"
@@ -71,14 +70,10 @@
 
             <Label text="Chats" style="-fx-font-size: 13px; -fx-padding: 4 0 4 16;"/>
 
-            <VBox spacing="4" style="-fx-padding: 0 8 0 8;">
-                <Label text="Bigram Language Model" maxWidth="Infinity"
-                       style="-fx-background-radius: 8;
-                              -fx-padding: 10 12 10 12; -fx-font-size: 14px;"/>
-                <Label text="JavaFX" maxWidth="Infinity"
-                       style="-fx-padding: 10 12 10 12; -fx-font-size: 14px;"/>
-            </VBox>
+            <VBox fx:id="chatListBox" spacing="4" style="-fx-padding: 0 8 0 8;"/>
+
         </VBox>
+        <!-- ↑ SIDEBAR CLOSED HERE -->
 
         <!-- MAIN CONTENT -->
         <VBox HBox.hgrow="ALWAYS">
@@ -113,6 +108,7 @@
             </VBox>
 
         </VBox>
+
     </HBox>
 
 </VBox>
