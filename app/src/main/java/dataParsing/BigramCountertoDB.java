@@ -145,7 +145,7 @@ public class BigramCountertoDB {
         seenChecksums.add(checksum); //adds to list of seen checksums
 
         String text = new String(raw, StandardCharsets.UTF_8);
-
+        //Creating a file record for this new file
         FileRecord fr = new FileRecord();
         fr.fileName      = file.getFileName().toString();
         fr.filePath      = file.toAbsolutePath().toString();
@@ -209,7 +209,7 @@ public class BigramCountertoDB {
         printSummary();
     }
 
-    // ---- 3a. Words -----------------------------------------------------------
+    // ---- Words -----------------------------------------------------------
 
     private void flushWords(Connection conn) {
         /*
@@ -265,7 +265,7 @@ public class BigramCountertoDB {
         }
     }
 
-    // ---- 3b. Transitions -----------------------------------------------------
+    // ---- Transitions -----------------------------------------------------
 
     private void flushTransitions(Connection conn) {
         String sql =
@@ -304,7 +304,8 @@ public class BigramCountertoDB {
         }
     }
 
-    // ---- 3c. Recalculate probabilities ---------------------------------------
+    // ---- Recalculate probabilities ---------------------------------------
+    //Note: This is now handled in the model training code, so this is no longer called
 
     /**
      * Updates every row in word_transitions so that probability = count / SUM(count)
@@ -336,7 +337,7 @@ public class BigramCountertoDB {
         }
     }
 
-    // ---- 3d. Imported files --------------------------------------------------
+    // ---- Imported files --------------------------------------------------
 
     private void flushImportedFiles(Connection conn) {
         String sql =
@@ -382,7 +383,7 @@ public class BigramCountertoDB {
         System.out.printf("  Files processed this run: %,d%n", pendingFiles.size());
     }
 
-    // 4.  Helper / utility methods (same as regular BigramCounter)
+    //  Helper / utility methods (same as regular BigramCounter)
     public static List<String> tokenize(String text) {
         text = text
             .replace('\u2018', '\'')
@@ -402,6 +403,7 @@ public class BigramCountertoDB {
     private int wordId(String word) {
         return wordIds.computeIfAbsent(word, w -> nextWordId++);
     }   
+
 
     /** SHA-256 hex digest — credit: https://www.baeldung.com/sha-256-hashing-java */
     private static String sha256Hex(byte[] data) throws NoSuchAlgorithmException {
@@ -436,7 +438,8 @@ public class BigramCountertoDB {
 
             if (Files.isDirectory(inputPath)) {
                 System.out.println("Processing directory: " + inputPath);
-
+                //To cover when given a file directory
+                //Goes through all txt files within given directory
                 try {
                     Files.walk(inputPath)
                         .filter(Files::isRegularFile)
@@ -447,7 +450,7 @@ public class BigramCountertoDB {
                 }
 
             } else {
-
+                //Otherwise treat same way as regular bigramCounter
                 for (String arg : args) {
                     filesToProcess.add(Paths.get(arg));
                 }

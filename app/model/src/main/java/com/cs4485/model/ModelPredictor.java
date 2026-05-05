@@ -115,7 +115,7 @@ public class ModelPredictor {
     }
 }
 
-List<Prediction> preds = db.getPredictions("bigram", 10);
-preds.forEach(p ->
-        System.out.println(p.word() + " -> " + p.probability())
-        );
+//List<Prediction> preds = db.getPredictions("bigram", 10);
+//preds.forEach(p ->
+//        System.out.println(p.word() + " -> " + p.probability())
+//        );

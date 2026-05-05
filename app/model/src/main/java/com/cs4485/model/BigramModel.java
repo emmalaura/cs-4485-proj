@@ -303,7 +303,7 @@ public class BigramModel {
         // Each element is a pair of (cumulative log-probability, word sequence).
         // Log-probabilities are used instead of raw probabilities to avoid underflow
         // when multiplying many small values together.
-        List<Double> beamScores = new ArrayList<>();
+        List<double[]> beamScores = new ArrayList<>();
         List<List<String>> beamSequences = new ArrayList<>();
         beamScores.add(new double[]{0.0});
         beamSequences.add(new ArrayList<>(List.of(startWord)));
