@@ -1,3 +1,4 @@
+// Written by: Emma Gonzalez
 package com.sentencebuilder;
 
 import javafx.fxml.FXML;
@@ -35,7 +36,7 @@ public class SentenceGenController extends BaseController {
     private boolean modelReady = false;
     private String currentChatId;
 
-
+    // This function sets up the chat history functionality and theme
     private void setupChatHistory() {
         if (newChatButton != null) {
             newChatButton.setOnMouseClicked(e -> startNewChat());
@@ -47,7 +48,7 @@ public class SentenceGenController extends BaseController {
 
         renderChatHistory();
     }
-
+    // This function starts a new chat and clears the writing area when new chat is clicked
     private void startNewChat() {
         ChatHistoryManager.Chat chat = ChatHistoryManager.createChat(getCurrentPage());
         currentChatId = chat.getId();
@@ -55,7 +56,7 @@ public class SentenceGenController extends BaseController {
         inputField.clear();
         renderChatHistory();
     }
-
+    // This function ensures that a chat is created for the current chatId if it doesn't exist
     private void ensureCurrentChat(String firstMessage) {
         if (currentChatId == null || ChatHistoryManager.getChat(currentChatId) == null) {
             ChatHistoryManager.Chat chat = ChatHistoryManager.createChat(getCurrentPage());
@@ -63,7 +64,7 @@ public class SentenceGenController extends BaseController {
             currentChatId = chat.getId();
         }
     }
-
+    // Loads the chat history and renders it to the screen when the page is loaded or search is performed
     private void renderChatHistory() {
         if (chatListBox == null) return;
 
@@ -76,7 +77,7 @@ public class SentenceGenController extends BaseController {
             title.setMaxWidth(Double.MAX_VALUE);
             title.setWrapText(true);
             title.setStyle("-fx-font-size: 14px; -fx-text-fill: " + ThemeManager.getTextColor() + ";");
-
+            // When delete button is clicked, delete chat from chat history tab
             Button deleteButton = new Button("✕");
             deleteButton.setStyle("-fx-background-color: transparent; " +
                     "-fx-text-fill: " + ThemeManager.getSubText() + "; " +
@@ -111,7 +112,7 @@ public class SentenceGenController extends BaseController {
             chatListBox.getChildren().add(row);
         }
     }
-
+    // This function loads a chat from the chat history and sets up the writing area
     private void loadChat(String chatId) {
         ChatHistoryManager.Chat chat = ChatHistoryManager.getChat(chatId);
         if (chat == null) return;
@@ -132,6 +133,7 @@ public class SentenceGenController extends BaseController {
 
     @FXML
     public void initialize() {
+        // Load logo and set up theme
         try {
             Image logo = new Image(getClass().getResourceAsStream("autoglossarylogo.png"));
             logoImage.setImage(logo);
@@ -167,7 +169,7 @@ public class SentenceGenController extends BaseController {
             }
         }).start();
     }
-
+    // This function refreshes the theme and applies the appropriate styles to the UI elements based on the current theme settings
     private void refreshTheme() {
         getRootNode().setStyle("-fx-background-color: " + ThemeManager.getBackground() + ";");
 
@@ -213,6 +215,7 @@ public class SentenceGenController extends BaseController {
 
     @FXML
     private void handleSend() {
+        // Handle sending user input to the model and displaying the response in the chat window
         String input = inputField.getText().trim();
         if (input.isEmpty()) return;
 
@@ -224,7 +227,7 @@ public class SentenceGenController extends BaseController {
         }
         renderChatHistory();
         inputField.clear();
-
+        // If model is not ready, show loading message to give user confirmation it is loading
         if (!modelReady) {
             String response = "Model is still loading, please wait...";
             addResponseBubble(response);
@@ -235,7 +238,7 @@ public class SentenceGenController extends BaseController {
             return;
         }
 
-// ✅ ONLY ONCE
+        // Clean input and split into tokens
         String cleaned = input.toLowerCase().trim();
         String[] tokens = cleaned.split("\\s+");
 
@@ -249,11 +252,12 @@ public class SentenceGenController extends BaseController {
             return;
         }
 
-// use LAST WORD
+        // Use last word as seed
         String seed = tokens[tokens.length - 1];
 
         new Thread(() -> {
             try {
+                // Generate a sentence using the model with beam search
                 List<String> words = ModelPredictor.completeSentence(
                         model,
                         cleaned,
@@ -277,6 +281,7 @@ public class SentenceGenController extends BaseController {
 
             } catch (Exception e) {
                 javafx.application.Platform.runLater(() -> {
+                    // Handle any errors that occur during sentence generation and display them to the user
                     String response = "Error generating sentence: " + e.getMessage();
                     addResponseBubble(response);
                     ChatHistoryManager.Chat chat = ChatHistoryManager.getChat(currentChatId);
@@ -290,6 +295,7 @@ public class SentenceGenController extends BaseController {
     }
 
     private void addUserBubble(String text) {
+        // Add a user bubble to the chat window with the user's input
         Label bubble = new Label(text);
         bubble.setStyle("-fx-background-color: " + ThemeManager.getCardColor() + "; " +
                 "-fx-text-fill: " + ThemeManager.getTextColor() + "; " +
@@ -304,6 +310,7 @@ public class SentenceGenController extends BaseController {
     }
 
     private void addResponseBubble(String text) {
+        // Add a response bubble to the chat window with the model's response
         Label bullet = new Label("⊞");
         bullet.setStyle("-fx-font-size: 16px; -fx-text-fill: " + ThemeManager.getTextColor() + ";");
         Label bubble = new Label(text);

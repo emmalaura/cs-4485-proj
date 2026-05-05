@@ -1,3 +1,4 @@
+// Written by: Emma Gonzalez
 package com.sentencebuilder;
 
 import java.util.ArrayList;
@@ -62,17 +63,16 @@ public class ChatHistoryManager {
         public List<ChatMessage> getMessages() {
             return messages;
         }
-
+        // When new chat is created, set default title and content
         public void setTitle(String title) {
             this.title = title;
             touch();
         }
-
         public void setContent(String content) {
             this.content = content == null ? "" : content;
             touch();
         }
-
+        // When new message is added, update title and content based on message content
         public void addMessage(boolean user, String text) {
             messages.add(new ChatMessage(user, text));
             if ((title == null || title.isBlank() || title.equals("New Chat")) && text != null && !text.isBlank()) {
@@ -90,13 +90,13 @@ public class ChatHistoryManager {
     }
 
     private static final List<Chat> chats = new ArrayList<>();
-
+    // Create a new chat for the given page, and add it to the list of chats
     public static Chat createChat(String page) {
         Chat chat = new Chat(page, "New Chat");
         chats.add(chat);
         return chat;
     }
-
+    // Get all chats for the given page, sorted by last updated time (newest first)
     public static List<Chat> getChats(String page, String searchText) {
         String query = searchText == null ? "" : searchText.trim().toLowerCase();
 
@@ -108,7 +108,7 @@ public class ChatHistoryManager {
                 .sorted(Comparator.comparingLong((Chat chat) -> chat.updatedAt).reversed())
                 .collect(Collectors.toList());
     }
-
+    // Get a specific chat by its ID
     public static Chat getChat(String id) {
         return chats.stream()
                 .filter(chat -> chat.getId().equals(id))

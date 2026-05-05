@@ -1,3 +1,4 @@
+// Written by: Emma Gonzalez
 package com.sentencebuilder;
 
 import javafx.fxml.FXML;
@@ -33,7 +34,7 @@ public class AutoCompleteController extends BaseController {
     private String currentChatId;
     private boolean loadingChat = false;
 
-
+    // This function sets up the chat history functionality
     private void setupChatHistory() {
         if (newChatButton != null) {
             newChatButton.setOnMouseClicked(e -> startNewChat());
@@ -46,6 +47,7 @@ public class AutoCompleteController extends BaseController {
         renderChatHistory();
     }
 
+    // This function starts a new chat and clears the writing area
     private void startNewChat() {
         ChatHistoryManager.Chat chat = ChatHistoryManager.createChat(getCurrentPage());
         currentChatId = chat.getId();
@@ -58,6 +60,7 @@ public class AutoCompleteController extends BaseController {
         renderChatHistory();
     }
 
+    // This function saves the writing area's text to the chat history
     private void saveWritingChat(String text) {
         if (loadingChat) return;
 
@@ -77,6 +80,7 @@ public class AutoCompleteController extends BaseController {
         }
     }
 
+    // This function renders the chat history list and handles interactions
     private void renderChatHistory() {
         if (chatListBox == null) return;
 
@@ -89,7 +93,7 @@ public class AutoCompleteController extends BaseController {
             title.setMaxWidth(Double.MAX_VALUE);
             title.setWrapText(true);
             title.setStyle("-fx-font-size: 14px; -fx-text-fill: " + ThemeManager.getTextColor() + ";");
-
+            // If delete button is clicked, chat is deleted from history
             Button deleteButton = new Button("✕");
             deleteButton.setStyle("-fx-background-color: transparent; " +
                     "-fx-text-fill: " + ThemeManager.getSubText() + "; " +
@@ -129,7 +133,7 @@ public class AutoCompleteController extends BaseController {
             chatListBox.getChildren().add(row);
         }
     }
-
+    // This function loads a chat from the chat history and sets up the writing area
     private void loadChat(String chatId) {
         ChatHistoryManager.Chat chat = ChatHistoryManager.getChat(chatId);
         if (chat == null) return;
@@ -159,7 +163,7 @@ public class AutoCompleteController extends BaseController {
             System.out.println("Logo not found, skipping.");
         }
 
-        // Connect to DB in background so UI doesn't freeze
+        // Connect to DB in background so the UI doesn't freeze
         new Thread(() -> {
             try {
                 db = new DBInterface("localhost", "CS4485DB", "javauser", "cs4485");
@@ -169,7 +173,7 @@ public class AutoCompleteController extends BaseController {
             }
         }).start();
 
-        // Trigger suggestions after every space or comma
+        // Suggest suggestions after every space or comma
         writingArea.textProperty().addListener((obs, oldText, newText) -> {
             saveWritingChat(newText);
             if (newText.endsWith(" ") || newText.endsWith(",")) {
@@ -195,7 +199,7 @@ public class AutoCompleteController extends BaseController {
             });
         }
     }
-
+    // This function initializes the base UI elements, including the logo and theme button
     private void refreshTheme() {
         getRootNode().setStyle("-fx-background-color: " + ThemeManager.getBackground() + ";");
         navBar.setStyle("-fx-background-color: " + ThemeManager.getNavColor() +
@@ -207,6 +211,7 @@ public class AutoCompleteController extends BaseController {
             UIUtils.applyNavStyle(navReports, false);
             UIUtils.applyNavStyle(navImport, false);
         });
+        // Connects theme button to theme manager, managing light/dark mode
         if (themeBtn != null) {
             themeBtn.setText(ThemeManager.isDark() ? "☀ Light" : "🌙 Dark");
             themeBtn.setStyle("-fx-background-color: transparent; " +
@@ -226,6 +231,7 @@ public class AutoCompleteController extends BaseController {
     @Override protected Region getRootNode() { return rootNode; }
     @Override protected String getCurrentPage() { return "AutoComplete"; }
 
+    // This function shows suggestions based on the last word typed in the writing area
     private void showSuggestions(String text) {
         if (db == null) {
             System.out.println("AutoComplete: DB not ready yet.");
@@ -272,6 +278,8 @@ public class AutoCompleteController extends BaseController {
         }).start();
     }
 
+    // Written by: Citlali
+    // This function shows the option to add a new word to the dictionary if it does not exist in Database yet
     private void showAddWordOption(String word) {
         Label info = new Label("\"" + word + "\" not found");
         info.setStyle("-fx-font-size: 13px; -fx-padding: 6 8 6 0; " +
@@ -303,6 +311,8 @@ public class AutoCompleteController extends BaseController {
         });
     }
 
+    // Written by: Emma Gonzalez
+    // This function inserts a suggestion into the writing area by appending it to the current text
     private void insertSuggestion(String suggestion) {
         String current = writingArea.getText();
         // Append suggestion after the current text

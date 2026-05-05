@@ -1,3 +1,4 @@
+// Written by: Emma Gonzalez
 package com.sentencebuilder;
 
 import javafx.fxml.FXML;
@@ -22,6 +23,7 @@ public abstract class BaseController {
 
     protected void initBase() {
         applyTheme();
+        // Apply theme button, if clicked toggles theme between light and dark mode
         if (themeBtn != null) {
             themeBtn.setText(ThemeManager.isDark() ? "☀ Light" : "🌙 Dark");
             themeBtn.setOnAction(e -> {
@@ -31,7 +33,7 @@ public abstract class BaseController {
             });
         }
     }
-
+    // Applies theme to the root node and all its children, light or dark mode depending on user preference
     protected void applyTheme() {
         Region root = getRootNode();
         if (root == null) return;
@@ -48,7 +50,7 @@ public abstract class BaseController {
                 }
             }
         });
-
+        // Apply theme to text fields
         root.lookupAll("TextField").forEach(n -> {
             if (n instanceof TextField tf) {
                 tf.setStyle(
@@ -62,7 +64,7 @@ public abstract class BaseController {
                 );
             }
         });
-
+        // Apply theme to text areas
         root.lookupAll("TextArea").forEach(n -> {
             if (n instanceof TextArea ta) {
                 ta.setStyle(
@@ -76,7 +78,7 @@ public abstract class BaseController {
                 );
             }
         });
-
+        // Apply theme to combo boxes
         root.lookupAll("ComboBox").forEach(n -> {
             if (n instanceof ComboBox<?> cb) {
                 cb.setStyle(
@@ -87,7 +89,7 @@ public abstract class BaseController {
                 );
             }
         });
-
+        // Apply theme to cards
         root.lookupAll(".card").forEach(n -> {
             if (n instanceof VBox v) {
                 v.setStyle(v.getStyle() +
@@ -95,7 +97,7 @@ public abstract class BaseController {
             }
         });
     }
-
+    // Navigate to a new page when a button is clicked
     protected void navigateTo(String fxmlPath, javafx.scene.Node source) {
         try {
             var url = getClass().getResource(fxmlPath);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<!-- // Written by: Emma Gonzalez -->
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
@@ -10,7 +10,7 @@
       style="-fx-background-color: transparent;"
       prefWidth="1280" prefHeight="900">
 
-    <!-- TOP NAV BAR - full width -->
+    <!-- TOP NAV BAR  -->
     <HBox fx:id="navBar" alignment="CENTER_LEFT" spacing="40"
           style="-fx-background-color: transparent; -fx-padding: 16 40 16 20;"
           prefWidth="Infinity">

@@ -1,3 +1,4 @@
+// Written by: Emma Gonzalez
 package com.sentencebuilder;
 
 import javafx.fxml.FXML;
@@ -52,6 +53,7 @@ public class HomeController extends BaseController {
     }
 
     private void refreshTheme() {
+        // Apply theme to root node
         getRootNode().setStyle("-fx-background-color: " + ThemeManager.getBackground() + ";");
         navBar.setStyle("-fx-background-color: " + ThemeManager.getNavColor() +
                 "; -fx-padding: 16 40 16 20;");
@@ -68,7 +70,7 @@ public class HomeController extends BaseController {
                 + ThemeManager.getTextColor() + ";");
         welcomeSubtitle.setStyle("-fx-font-size: 18px; -fx-text-fill: "
                 + ThemeManager.getSubText() + "; -fx-text-alignment: center;");
-
+        // Create theme button, light or dark mode when clicked
         if (themeBtn != null) {
             themeBtn.setText(ThemeManager.isDark() ? "☀ Light" : "🌙 Dark");
             themeBtn.setStyle("-fx-background-color: transparent; " +

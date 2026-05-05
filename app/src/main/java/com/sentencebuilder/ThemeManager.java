@@ -1,3 +1,4 @@
+// Written by: Emma Gonzalez
 package com.sentencebuilder;
 
 import javafx.scene.Scene;
@@ -16,7 +17,7 @@ public class ThemeManager {
 
     public static boolean isDark() { return currentTheme == Theme.DARK; }
 
-    // Main colors
+    // Theme colors, depending on the current theme settings
     public static String getBackground()   { return isDark() ? "#1e1e1e" : "#D9D9D9"; }
     public static String getCardColor()    { return isDark() ? "#2c2c2c" : "#ffffff"; }
     public static String getTextColor()    { return isDark() ? "#ffffff" : "#1a1a1a"; }

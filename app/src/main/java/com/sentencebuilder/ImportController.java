@@ -1,3 +1,4 @@
+// Written by: Emma Gonzalez
 package com.sentencebuilder;
 
 import javafx.fxml.FXML;
@@ -36,6 +37,7 @@ public class ImportController extends BaseController {
 
     @FXML
     public void initialize() {
+        // Load logo and set up theme
         try {
             Image logo = new Image(getClass().getResourceAsStream("autoglossarylogo.png"));
             logoImage.setImage(logo);
@@ -58,16 +60,20 @@ public class ImportController extends BaseController {
     }
 
     private void loadImportHistory() {
+        // Load import history in a separate thread to avoid blocking UI
         new Thread(() -> {
             java.util.List<ImportedFilesQueries.ImportedFileRecord> files =
                 ImportedFilesQueries.getAllImportedFilesDetailed();
             javafx.application.Platform.runLater(() -> {
                 importHistoryList.getChildren().clear();
+                // If no files imported yet, show a message to user
                 if (files.isEmpty()) {
                     Label empty = new Label("No files imported yet.");
                     empty.setStyle("-fx-text-fill: " + ThemeManager.getSubText() + "; -fx-font-size: 14px;");
                     importHistoryList.getChildren().add(empty);
-                } else {
+                }
+                // If files imported, show history with date imported and name, wordcount and confirmation
+                else {
                     DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM/dd/yyyy");
                     for (ImportedFilesQueries.ImportedFileRecord rec : files) {
                         String dateStr = rec.importedAt != null
@@ -81,6 +87,7 @@ public class ImportController extends BaseController {
         }).start();
     }
 
+    // Set up theme and navigation bar
     private void refreshTheme() {
         getRootNode().setStyle("-fx-background-color: " + ThemeManager.getBackground() + ";");
         navBar.setStyle("-fx-background-color: " + ThemeManager.getNavColor() + "; -fx-padding: 16 40 16 20;");
@@ -91,6 +98,7 @@ public class ImportController extends BaseController {
             UIUtils.applyNavStyle(navReports, false);
             UIUtils.applyNavStyle(navImport, true);
         });
+        // Set theme button style, light and dark mode available for user
         if (themeBtn != null) {
             themeBtn.setText(ThemeManager.isDark() ? "☀ Light" : "🌙 Dark");
             themeBtn.setStyle("-fx-background-color: transparent; " +
@@ -110,6 +118,7 @@ public class ImportController extends BaseController {
 
     @FXML
     private void handleChooseFile() {
+        // Open file chooser dialog and process file if user selects one
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select a Text File");
         fileChooser.getExtensionFilters().add(
@@ -117,7 +126,7 @@ public class ImportController extends BaseController {
         Stage stage = (Stage) dropLabel.getScene().getWindow();
         File file = fileChooser.showOpenDialog(stage);
         if (file == null) return;
-
+        // Show user processing message to confirm file is being processed
         dropLabel.setText("Processing " + file.getName() + "...");
 
         new Thread(() -> {

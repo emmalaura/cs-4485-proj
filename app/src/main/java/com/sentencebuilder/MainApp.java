@@ -1,3 +1,4 @@
+// Written by: Emma Gonzalez
 package com.sentencebuilder;
 
 import javafx.application.Application;
@@ -9,6 +10,7 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        // Load the main FXML file and show the scene containing the root node
         FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/com/sentencebuilder/Home.fxml")
         );

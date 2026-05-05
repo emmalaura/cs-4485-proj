@@ -1,3 +1,4 @@
+// Written by: Emma Gonzalez
 package com.sentencebuilder;
 
 import javafx.scene.control.Button;
@@ -8,7 +9,7 @@ import javafx.scene.image.ImageView;
 
 public class UIUtils {
 
-    // ── Nav hover + active indicator ──────────────────────────────────────
+    // ── Nav hover + active indicator
 
     public static void applyNavStyle(Label label, boolean isActive) {
         String textColor = ThemeManager.getTextColor();
@@ -31,6 +32,7 @@ public class UIUtils {
         }
     }
     public static void applyDarkButtonStyle(Button button) {
+        // Button style for dark mode
         String normal = "-fx-background-color: " + ThemeManager.getButtonColor() + "; -fx-text-fill: white; " +
                 "-fx-font-size: 16px; -fx-padding: 16 40 16 40; " +
                 "-fx-background-radius: 12; -fx-cursor: hand;";
@@ -44,6 +46,7 @@ public class UIUtils {
     }
 
     public static void applyLightButtonStyle(Button button) {
+        // Button style for light mode
         String normal = "-fx-background-color: " + ThemeManager.getButtonColor() + "; -fx-text-fill: white; " +
                 "-fx-font-size: 14px; -fx-padding: 10 24 10 24; " +
                 "-fx-background-radius: 20; -fx-cursor: hand;";
@@ -56,14 +59,14 @@ public class UIUtils {
         button.setOnMouseExited(e -> button.setStyle(normal));
     }
 
-    // ── Drop shadow on cards ──────────────────────────────────────────────
+    // Drop shadow on cards
 
     public static void applyCardShadow(VBox card) {
         card.setStyle(card.getStyle() +
                 "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 12, 0, 0, 2);");
     }
 
-    // ── Theme toggle button ───────────────────────────────────────────────
+    // Theme toggle button
 
     public static Button createThemeToggleButton(Runnable onToggle) {
         Button btn = new Button(ThemeManager.isDark() ? "☀ Light" : "🌙 Dark");
@@ -82,6 +85,7 @@ public class UIUtils {
         });
         return btn;
     }
+    // Update logo image based on theme
     public static void updateLogo(ImageView logoImage) {
         if (logoImage == null) return;
 

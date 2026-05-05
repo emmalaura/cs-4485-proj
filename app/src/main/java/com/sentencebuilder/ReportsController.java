@@ -1,3 +1,4 @@
+// Written by: Emma Gonzalez
 package com.sentencebuilder;
 
 import databaseConnections.WordQueries;
@@ -37,6 +38,7 @@ public class ReportsController extends BaseController {
 
     @FXML
     public void initialize() {
+        // Load logo and set up theme
         try {
             Image logo = new Image(getClass().getResourceAsStream("autoglossarylogo.png"));
             logoImage.setImage(logo);
@@ -47,7 +49,7 @@ public class ReportsController extends BaseController {
         UIUtils.applyCardShadow(wordListCard);
         UIUtils.applyCardShadow(sentenceCard);
         UIUtils.updateLogo(logoImage);
-
+        // Set up sort selector with options and default value based on user preference
         sortSelector.setItems(FXCollections.observableArrayList(
                 "Alphabetical (A-Z)", "Frequency (Most Used)", "Date Added"
         ));
@@ -55,6 +57,7 @@ public class ReportsController extends BaseController {
         sortSelector.setOnAction(e -> renderWordList(sortSelector.getValue()));
 
         new Thread(() -> {
+            // Load words and sentences from database in background thread
             if (wordEntries.isEmpty()) {
                 loadWordsFromDB();
             }
@@ -67,7 +70,7 @@ public class ReportsController extends BaseController {
 
         initBase();
         refreshTheme();
-
+        // Set up theme button action to toggle theme and refresh UI
         if (themeBtn != null) {
             themeBtn.setOnAction(e -> {
                 ThemeManager.toggleTheme();
@@ -78,7 +81,8 @@ public class ReportsController extends BaseController {
             });
         }
     }
-
+    // Written by: Kevin
+    // This function loads the words from the database and populates the word list
     private void loadWordsFromDB() {
         wordEntries.clear();
         List<WordQueries.WordRecord> records = WordQueries.getAllWords(false);
@@ -93,7 +97,8 @@ public class ReportsController extends BaseController {
             ));
         }
     }
-
+    // Written by: Sajid
+    // This function loads the sentences from the database and populates the sentence list
     private void loadSentencesFromDB() {
         sentenceEntries.clear();
         List<GeneratedSentencesQueries.SentenceRecord> records = GeneratedSentencesQueries.getAllGeneratedSentenceRecords();
@@ -101,7 +106,8 @@ public class ReportsController extends BaseController {
             sentenceEntries.add(new SentenceEntry(record.sentenceText, record.createdAt != null ? record.createdAt : "N/A"));
         }
     }
-
+// Written by: Emma
+    // Refreshes the theme and UI elements based on the current theme settings
     private void refreshTheme() {
         getRootNode().setStyle("-fx-background-color: " + ThemeManager.getBackground() + ";");
 
@@ -151,7 +157,7 @@ public class ReportsController extends BaseController {
 
     @Override
     protected String getCurrentPage() { return "Reports"; }
-
+    // Separate functions for rendering word list and sentence list based on sort option: Alphabetical (A-Z), Frequency (Most Used), Date Added
     private void renderWordList(String sortBy) {
         wordListContainer.getChildren().clear();
         List<WordEntry> sorted = new ArrayList<>(wordEntries);
@@ -183,8 +189,8 @@ public class ReportsController extends BaseController {
             wordListContainer.getChildren().add(row);
         }
     }
-
     private void renderSentenceList() {
+        // Group sentences by date and count duplicates for each date
         sentenceListContainer.getChildren().clear();
         Map<String, Integer> countMap = new LinkedHashMap<>();
         Map<String, String> dateMap = new LinkedHashMap<>();
@@ -209,7 +215,7 @@ public class ReportsController extends BaseController {
             Label dateLabel = new Label(dateMap.get(sentence));
             dateLabel.setPrefWidth(120);
             dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + ThemeManager.getSubText() + ";");
-
+            // If duplicates exist, add badge with count
             if (count > 1) {
                 Label badge = new Label(count + " duplicates");
                 badge.setStyle("-fx-background-color: #e53935; -fx-text-fill: white; " +
