@@ -101,13 +101,16 @@ public class ImportedFilesQueries {
 
         return files;
     }
+    /** Stores metadata for each file imported into the database */
 
     public static class ImportedFileRecord {
         public String fileName;
         public int wordCount;
         public java.sql.Timestamp importedAt;
     }
-
+    /** Retrieves all imported file records from the database with full details, and is ordered
+    from recently imported to the oldest.
+     */
     public static List<ImportedFileRecord> getAllImportedFilesDetailed() {
         List<ImportedFileRecord> files = new ArrayList<>();
         String sql = "SELECT fileName, wordCount, importedAt FROM imported_files ORDER BY importedAt DESC";

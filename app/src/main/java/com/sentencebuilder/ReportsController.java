@@ -227,7 +227,7 @@ public class ReportsController extends BaseController {
             sentenceListContainer.getChildren().add(row);
         }
     }
-
+    
     static class WordEntry {
         String word, dateAdded, sourceFile;
         int frequency;

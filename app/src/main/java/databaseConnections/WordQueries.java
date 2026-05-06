@@ -132,7 +132,10 @@ public class WordQueries {
             System.out.println("Error updating word info: " + e.getMessage());
         }
     }
-
+/**
+ * Retrieves the name of the source file that a word was imported from,
+ * matched by comparing the word's creation date to the file's import date.
+ */
     public static String getSourceFileForWord(int wordId) {
         String sql = "SELECT f.fileName FROM imported_files f " +
                 "JOIN words w ON DATE(f.importedAt) = DATE(w.createdAt) " +
@@ -147,6 +150,10 @@ public class WordQueries {
         }
         return "N/A";
     }
+/**
+ * Retrieves the date a word was added to the database, formatted as {YYYY-MM-DD}.
+ * The time portion of the timestamp is truncated, returning only the date component.
+ */
     public static String getDateAddedForWord(int wordId) {
         String sql = "SELECT createdAt FROM words WHERE wordId = ?";
         try (Connection conn = dbConnection.getConnection();
