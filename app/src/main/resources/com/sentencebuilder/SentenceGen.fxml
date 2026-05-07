@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- // Written by: Emma Gonzalez -->
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+
+<VBox fx:id="rootNode" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.sentencebuilder.SentenceGenController"
+      style="-fx-background-color: transparent;"
+      prefWidth="1280" prefHeight="900">
+
+    <!-- TOP NAV BAR  -->
+    <HBox fx:id="navBar" alignment="CENTER_LEFT" spacing="40"
+          style="-fx-background-color: transparent; -fx-padding: 16 40 16 20;"
+          prefWidth="Infinity">
+
+        <ImageView fx:id="logoImage" fitWidth="60" fitHeight="60" preserveRatio="true"/>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <HBox spacing="40" alignment="CENTER">
+            <Label text="Home" style="-fx-font-size: 18px; -fx-cursor: hand;"
+                   fx:id="navHome" onMouseClicked="#handleHome"/>
+            <Label fx:id="navSentenceGen" text="Sentence Gen"
+                   style="-fx-font-size: 18px; -fx-padding: 4 0 4 0;"/>
+            <Label text="Auto-complete" style="-fx-font-size: 18px; -fx-cursor: hand;"
+                   fx:id="navAutoComplete" onMouseClicked="#handleAutoComplete"/>
+            <Label text="Reports" style="-fx-font-size: 18px; -fx-cursor: hand;"
+                   fx:id="navReports" onMouseClicked="#handleReports"/>
+            <Label text="Import" style="-fx-font-size: 18px; -fx-cursor: hand;"
+                   fx:id="navImport" onMouseClicked="#handleImport"/>
+            <Button fx:id="themeBtn"
+                    style="-fx-background-color: transparent;
+                       -fx-text-fill: #888888;
+                       -fx-font-size: 13px;
+                       -fx-cursor: hand;
+                       -fx-border-color: #888888;
+                       -fx-border-radius: 20;
+                       -fx-background-radius: 20;
+                       -fx-padding: 4 12 4 12;"/>
+        </HBox>
+    </HBox>
+
+    <!-- SIDEBAR + CONTENT ROW -->
+    <HBox VBox.vgrow="ALWAYS">
+
+        <!-- LEFT SIDEBAR -->
+        <VBox prefWidth="280"
+              style="-fx-border-color: #bbbbbb; -fx-border-width: 0 1 0 0;">
+
+            <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10 16 10 16;">
+                <Label text="☰" style="-fx-font-size: 16px;"/>
+                <Label text="Chat History" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="newChatButton" text="⊕" style="-fx-font-size: 16px; -fx-cursor: hand;"/>
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="8"
+                  style="-fx-background-radius: 8; -fx-padding: 8 12 8 12;">
+                <HBox.margin>
+                    <Insets left="16" right="16" bottom="8"/>
+                </HBox.margin>
+                <TextField fx:id="searchField" promptText="Search"
+                           style="-fx-background-color: transparent;
+                                  -fx-border-color: transparent;
+                                  -fx-font-size: 14px;" HBox.hgrow="ALWAYS"/>
+                <Label text="🔍" style="-fx-font-size: 14px;"/>
+            </HBox>
+
+            <Label text="Chats" style="-fx-font-size: 13px; -fx-padding: 4 0 4 16;"/>
+
+            <VBox fx:id="chatListBox" spacing="4" style="-fx-padding: 0 8 0 8;"/>
+
+        </VBox>
+
+        <!-- MAIN CONTENT -->
+        <VBox HBox.hgrow="ALWAYS">
+
+            <!-- PAGE TITLE -->
+            <Label text="Sentence Generator"
+                   style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-padding: 10 0 10 0;"
+                   maxWidth="Infinity" alignment="CENTER"/>
+
+            <!-- MESSAGE AREA - limited height so input bar stays visible -->
+            <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" maxHeight="600"
+                        style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+                <VBox fx:id="messageArea" spacing="10" style="-fx-padding: 10 0 10 0;"/>
+            </ScrollPane>
+
+            <!-- INPUT BAR -->
+            <HBox alignment="CENTER_LEFT" spacing="10"
+                  style="-fx-background-radius: 16;
+                         -fx-padding: 14 16 14 16;
+                         -fx-margin: 20;">
+                <HBox.margin>
+                    <Insets left="20" right="20" bottom="20" top="10"/>
+                </HBox.margin>
+
+                <TextField fx:id="inputField"
+                           promptText="What word would you like to use?"
+                           HBox.hgrow="ALWAYS"
+                           style="-fx-background-color: transparent;
+                                  -fx-border-color: transparent;
+                                  -fx-font-size: 14px;"/>
+
+                <Button text="↑" onAction="#handleSend"
+                        style="-fx-background-radius: 50;
+                               -fx-font-size: 16px;
+                               -fx-padding: 8 14 8 14;
+                               -fx-cursor: hand;"/>
+            </HBox>
+
+        </VBox>
+    </HBox>
+
+</VBox>
