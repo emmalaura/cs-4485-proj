@@ -35,6 +35,7 @@ public class SentenceGenController extends BaseController {
     private BigramModel model;
     private boolean modelReady = false;
     private String currentChatId;
+    private ComboBox<String> strategyPicker;
 
     // This function sets up the chat history functionality and theme
     private void setupChatHistory() {
@@ -48,6 +49,41 @@ public class SentenceGenController extends BaseController {
 
         renderChatHistory();
     }
+
+    private void setupStrategyPicker() {
+        strategyPicker = new ComboBox<>();
+        strategyPicker.getItems().addAll("Beam Search", "Greedy", "Random Sampling");
+        strategyPicker.setValue("Beam Search");
+        strategyPicker.setStyle(
+                "-fx-background-color: " + ThemeManager.getInputColor() + ";" +
+                "-fx-text-fill: " + ThemeManager.getTextColor() + ";" +
+                "-fx-border-color: " + ThemeManager.getBorderColor() + ";" +
+                "-fx-background-radius: 8;" +
+                "-fx-font-size: 13px;"
+        );
+
+        Label pickerLabel = new Label("Generation Strategy:");
+        pickerLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + ThemeManager.getTextColor() + "; -fx-padding: 0 8 0 0;");
+
+        HBox pickerRow = new HBox(8, pickerLabel, strategyPicker);
+        pickerRow.setAlignment(Pos.CENTER_LEFT);
+        pickerRow.setStyle("-fx-padding: 0 20 8 20;");
+
+        VBox parent = (VBox) messageArea.getParent();
+        int inputIndex = parent.getChildren().indexOf(messageArea);
+        parent.getChildren().add(inputIndex + 1, pickerRow);
+    }
+
+    private GenerationStrategy getSelectedStrategy() {
+        if (strategyPicker == null) return GenerationStrategy.BEAM;
+        String selected = strategyPicker.getValue();
+        return switch (selected) {
+            case "Greedy" -> GenerationStrategy.GREEDY;
+            case "Random Sampling" -> GenerationStrategy.SAMPLE;
+            default -> GenerationStrategy.BEAM;
+        };
+    }
+
     // This function starts a new chat and clears the writing area when new chat is clicked
     private void startNewChat() {
         ChatHistoryManager.Chat chat = ChatHistoryManager.createChat(getCurrentPage());
@@ -145,6 +181,7 @@ public class SentenceGenController extends BaseController {
         initBase();
         refreshTheme();
         setupChatHistory();
+        setupStrategyPicker();
 
         if (themeBtn != null) {
             themeBtn.setOnAction(e -> {
@@ -254,21 +291,23 @@ public class SentenceGenController extends BaseController {
 
         // Use last word as seed
         String seed = tokens[tokens.length - 1];
+        GenerationStrategy strategy = getSelectedStrategy();
+        String strategyName = strategyPicker != null ? strategyPicker.getValue() : "Beam Search";
 
         new Thread(() -> {
             try {
-                // Generate a sentence using the model with beam search
+                // Generate a sentence using the model with the selected strategy
                 List<String> words = ModelPredictor.completeSentence(
                         model,
                         cleaned,
                         10,
-                        GenerationStrategy.BEAM
+                        strategy
                 );
 
                 String sentence = String.join(" ", words);
 
                 // Insert the generated sentence into the database
-                GeneratedSentencesQueries.insertGeneratedSentence(sentence, null, "BEAM", words.size());
+                GeneratedSentencesQueries.insertGeneratedSentence(sentence, null, strategyName, words.size());
 
                 javafx.application.Platform.runLater(() -> {
                     addResponseBubble(sentence);
