@@ -75,7 +75,7 @@
         </VBox>
 
         <!-- MAIN CONTENT -->
-        <VBox HBox.hgrow="ALWAYS">
+        <VBox fx:id="mainContentBox" HBox.hgrow="ALWAYS">
 
             <!-- PAGE TITLE -->
             <Label text="Sentence Generator"

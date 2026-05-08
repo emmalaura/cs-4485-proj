@@ -18,6 +18,7 @@ import java.util.List;
 public class SentenceGenController extends BaseController {
 
     @FXML private VBox rootNode;
+    @FXML private VBox mainContentBox;
     @FXML private Label newChatButton;
     @FXML private VBox chatListBox;
     @FXML private HBox navBar;
@@ -69,9 +70,8 @@ public class SentenceGenController extends BaseController {
         pickerRow.setAlignment(Pos.CENTER_LEFT);
         pickerRow.setStyle("-fx-padding: 0 20 8 20;");
 
-        VBox parent = (VBox) messageArea.getParent();
-        int inputIndex = parent.getChildren().indexOf(messageArea);
-        parent.getChildren().add(inputIndex + 1, pickerRow);
+        int inputIndex = mainContentBox.getChildren().size() - 1;
+        mainContentBox.getChildren().add(inputIndex, pickerRow);
     }
 
     private GenerationStrategy getSelectedStrategy() {
