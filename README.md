@@ -1,72 +1,212 @@
-# cs-4485-proj
+# CS-4485 Project — Auto Glossary
 
-#To install on MAC:
-To start you wanna install mysql,
-if you have homebrew just put this command in terminal:
+A JavaFX-based sentence builder with autocomplete powered by a Bigram Language Model trained on technical textbooks.
+
+---
+
+## Prerequisites
+
+- Java JDK 25 (Temurin recommended)
+- Apache Maven 3.9.6
+- JavaFX SDK 26
+- MySQL 8.x
+- IntelliJ IDEA
+
+---
+
+## Database Setup — macOS
+
+### 1. Install MySQL
+If you have Homebrew:
+```bash
 brew install mysql
 brew services start mysql
+```
 
-1.Then secure your db by putting this in the terminal:
-
+### 2. Secure Your Installation
+```bash
 mysql_secure_installation
-then its going to ask you questions:
-validate password? N
-then set ur root password: (could be anything) but i put cs4485project
-Remove anonymous users? Y
-Disallow root login? Y
-Remove test DB? Y
-Reload privilege tables? Y
+```
+Answer the prompts as follows:
+- Validate password? → **N**
+- Set root password → **cs4485project** (or your own)
+- Remove anonymous users? → **Y**
+- Disallow root login remotely? → **Y**
+- Remove test database? → **Y**
+- Reload privilege tables? → **Y**
 
-2.Then log in to the DB using these commands in terminal:
-
+### 3. Log In and Create the Database
+```bash
 mysql -u root -p
-
-3.Type these commands to create the database and user:
-
+```
+Then run these commands:
+```sql
 CREATE DATABASE CS4485DB;
 CREATE USER 'javauser'@'localhost' IDENTIFIED BY 'cs4485';
 GRANT ALL PRIVILEGES ON CS4485DB.* TO 'javauser'@'localhost';
 FLUSH PRIVILEGES;
 exit
+```
 
-4.Then you want to load the schemas, so exit the mysql terminal and go back into the regular terminal and type:
+### 4. Load the Schema
+Exit MySQL and run this in your terminal:
+```bash
+mysql -u root -p < sql/schema.sql
+```
+Enter password: `cs4485`
 
-mysql -u javauser -p CS4485DB < (path to the sql file)
-then enter the password: cs4485 (unless you chose differently)
-
-5.Then verify your tables by typing this in terminal:
-
+### 5. Verify Tables
+```bash
 mysql -u javauser -p CS4485DB
+```
+```sql
 SHOW TABLES;
-there should be our tables in there.
+```
+You should see all project tables listed.
 
-#To install on Windows:
-1. Download MySQL install for windows, run it and select Developer Defualt, set your root password.
-2. Add MySQL to PATH. Go youj "Environemnt Varibles" Click "edit the system environemnt varibles", At the bottom there should be a "path" button and click edit then new. Paste the Address of your install location to mysql
-   ex.C:\Program Files\MySQL\MySQL Server 8.0\bin
-3. Then open Mysql Command line client and enter the root password
-4. Create the DB
-5. type these commands into the command line
-  CREATE DATABASE CS4485DB;
-  CREATE USER 'javauser'@'localhost' IDENTIFIED BY 'cs4485';
-  GRANT ALL PRIVILEGES ON CS4485DB.* TO 'javauser'@'localhost';
-  FLUSH PRIVILEGES;
-  exit
-6. Load your schema by typing this in a open Command prompt
-  mysql -u javauser -p CS4485DB < C:\path\to\schema.sql
-   enter the password: cs4485
-8. Check to make sure the tables are loaded
-     mysql -u javauser -p CS4485DB
-     SHOW TABLES;
+---
 
-#After compeleting those steps, go to dbConnection.java and run it. It should say DB CONNECTED!
+## Database Setup — Windows
 
-#For maintaining sync:
-Import sql/db_dump.sql to your local db if it differs using this command
+### 1. Install MySQL
+Download and run the MySQL installer from [mysql.com](https://dev.mysql.com/downloads/installer/).
+Select **Developer Default** and set your root password when prompted.
+
+### 2. Add MySQL to PATH
+- Open **System Properties** → **Environment Variables**
+- Under **System Variables**, find **Path** and click **Edit**
+- Click **New** and add your MySQL bin path, for example:
+```
+C:\Program Files\MySQL\MySQL Server 8.0\bin
+```
+
+### 3. Create the Database
+Open **MySQL Command Line Client**, enter your root password, then run:
+```sql
+CREATE DATABASE CS4485DB;
+CREATE USER 'javauser'@'localhost' IDENTIFIED BY 'cs4485';
+GRANT ALL PRIVILEGES ON CS4485DB.* TO 'javauser'@'localhost';
+FLUSH PRIVILEGES;
+exit
+```
+
+### 4. Load the Schema
+Open a regular Command Prompt and run:
+```bash
+mysql -u root -p < sql/schema.sql
+```
+Enter password: `cs4485`
+
+### 5. Verify Tables
+```bash
+mysql -u javauser -p CS4485DB
+```
+```sql
+SHOW TABLES;
+```
+You should see all project tables listed.
+
+---
+
+## JavaFX Setup — IntelliJ
+
+### 1. Download JavaFX SDK
+Download JavaFX SDK 26 from [gluonhq.com](https://gluonhq.com/products/javafx/).
+- macOS Apple Silicon → choose **aarch64**
+- macOS Intel / Windows → choose **x64**
+
+Extract it somewhere permanent, for example:
+- macOS: `/Users/yourname/javafx-sdk-26`
+- Windows: `C:\javafx-sdk-26`
+
+### 2. Add JavaFX as a Library in IntelliJ
+- Go to **File → Project Structure → Libraries**
+- Click **+** → **Java**
+- Navigate to your JavaFX SDK `lib` folder and select it
+- Click **OK** and apply to your module
+
+### 3. Configure VM Options
+- Go to **Run → Edit Configurations**
+- Click **Modify options → Add VM options**
+- Paste the following (update the path to match your SDK location):
+
+macOS:
+```
+--module-path "/Users/yourname/javafx-sdk-26/lib" --add-modules javafx.controls,javafx.fxml
+```
+Windows:
+```
+--module-path "C:\javafx-sdk-26\lib" --add-modules javafx.controls,javafx.fxml
+```
+
+---
+
+## Build & Run
+
+### 1. Build the Project
+```bash
+mvn clean install -DskipTests
+```
+
+### 2. Verify Database Connection
+Run `dbConnection.java` — you should see:
+```
+DB CONNECTED!
+```
+
+### 3. Run the App
+```bash
+cd app
+mvn javafx:run
+```
+Or run `MainApp.java` directly in IntelliJ.
+
+---
+
+## Database Sync
+
+If your local database differs from the team's latest, import the shared dump:
 ```bash
 mysql -u javauser -p CS4485DB < db_dump.sql
 ```
-Export your own database if you process and add new data using this command
+
+If you have processed and added new data, export your database:
 ```bash
 mysqldump -u javauser -p --no-tablespaces CS4485DB > db_dump.sql
-``` 
+```
+Then commit `db_dump.sql` to the repo so teammates can sync.
+
+---
+
+## Project Structure
+
+```
+cs-4485-proj/
+├── app/                        # JavaFX frontend + database connection classes
+│   └── src/main/java/com/sentencebuilder/
+│       ├── MainApp.java
+│       ├── HomeController.java
+│       ├── SentenceGenController.java
+│       ├── AutoCompleteController.java
+│       ├── ReportsController.java
+│       ├── ImportController.java
+│       ├── ChatHistoryManager.java
+│       ├── ThemeManager.java
+│       ├── UIUtils.java
+│       └── BaseController.java
+├── model/                      # Bigram model, DBInterface, ModelPredictor
+├── sql/                        # MySQL schema and dumps
+└── pom.xml
+```
+
+---
+
+## Team Branches
+
+| Branch | Purpose |
+|---|---|
+| `javafx` | Frontend UI |
+| `integration` | Main integration branch |
+| `data-processing` | Text file processing |
+| `bigram-model` | Language model |
+| `mysql` | Database connections |
